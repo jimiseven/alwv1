@@ -1,4 +1,3 @@
-// config/db.php
 <?php
 // Configuración de conexión a la base de datos para cPanel
 define('DB_SERVER', 'localhost');
@@ -16,4 +15,3 @@ if(!$conn){
 
 // Establecer el juego de caracteres (importante para caracteres especiales)
 mysqli_set_charset($conn, "utf8");
-?>

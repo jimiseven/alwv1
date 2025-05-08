@@ -1,10 +1,9 @@
-// config/config.php
 <?php
 // Iniciar sesión en todas las páginas
 session_start();
 
 // Definir la URL base del sitio (ajustar según el entorno)
-define('BASE_URL', '/sistema_ventas/');
+define('BASE_URL', '/alwv1/');
 
 // Función para verificar si el usuario está logueado
 function isLoggedIn() {
