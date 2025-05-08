@@ -42,8 +42,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Obtener lista de cuentas para el select
-$sql_cuentas = "SELECT id, correo FROM cuentas ORDER BY correo";
+// Obtener lista de cuentas con contador de usuarios
+$sql_cuentas = "SELECT c.id, c.correo, COUNT(v.id) as usuarios
+               FROM cuentas c
+               LEFT JOIN ventas v ON c.id = v.cuenta_id AND v.fecha_fin >= CURDATE()
+               GROUP BY c.id
+               ORDER BY usuarios ASC, c.correo";
 $result_cuentas = mysqli_query($conn, $sql_cuentas);
 ?>
 <!DOCTYPE html>
@@ -64,7 +68,9 @@ $result_cuentas = mysqli_query($conn, $sql_cuentas);
                 <select class="form-select" id="cuenta_id" name="cuenta_id" required>
                     <option value="">Seleccionar cuenta</option>
                     <?php while ($cuenta = mysqli_fetch_assoc($result_cuentas)): ?>
-                        <option value="<?= $cuenta['id'] ?>"><?= htmlspecialchars($cuenta['correo']) ?></option>
+                        <option value="<?= $cuenta['id'] ?>">
+                            <?= htmlspecialchars($cuenta['correo']) ?> - Usuarios: <?= $cuenta['usuarios'] ?>
+                        </option>
                     <?php endwhile; ?>
                 </select>
             </div>

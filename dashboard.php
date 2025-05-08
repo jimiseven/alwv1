@@ -3,7 +3,7 @@ require_once 'config/db.php';
 require_once 'config/config.php';
 requireLogin();
 
-// Consultar estadísticas
+// Consultar estadísticas de cuentas
 $sql_cuentas = "SELECT COUNT(*) as total_cuentas, 
                 SUM(costo) as gastos_totales, 
                 SUM(ganancia) as ganancias_totales 
@@ -11,13 +11,13 @@ $sql_cuentas = "SELECT COUNT(*) as total_cuentas,
 $resultado_cuentas = mysqli_query($conn, $sql_cuentas);
 $datos_cuentas = mysqli_fetch_assoc($resultado_cuentas);
 
+// Consultar ventas activas
 $sql_usuarios = "SELECT COUNT(*) as total_usuarios 
                 FROM ventas 
                 WHERE fecha_fin >= CURDATE()";
 $resultado_usuarios = mysqli_query($conn, $sql_usuarios);
 $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -37,8 +37,8 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">Centralizador</h1>
                 </div>
-                
-                <!-- Tabla Cuentas -->
+
+                <!-- Tabla de Cuentas -->
                 <div class="table-responsive mb-4">
                     <table class="table table-bordered">
                         <thead class="table-secondary">
@@ -74,7 +74,8 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                         </tbody>
                     </table>
                 </div>
-                
+
+                <!-- Contador Cuentas -->
                 <div class="d-flex justify-content-between mb-4">
                     <div>
                         <h1 class="display-1"><?= $datos_cuentas['total_cuentas'] ?? 0 ?></h1>
@@ -85,8 +86,8 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                         </button>
                     </div>
                 </div>
-                
-                <!-- Tabla Ventas -->
+
+                <!-- Tabla de Ventas -->
                 <div class="table-responsive mb-4">
                     <table class="table table-bordered">
                         <thead class="table-secondary">
@@ -127,7 +128,8 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                         </tbody>
                     </table>
                 </div>
-                
+
+                <!-- Contador Usuarios -->
                 <div class="d-flex justify-content-between mb-4">
                     <div>
                         <h1 class="display-1"><?= $datos_usuarios['total_usuarios'] ?? 0 ?></h1>
@@ -149,7 +151,7 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="nuevaCuentaModalLabel"><i class="bi bi-person-plus"></i> Nueva Cuenta</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <form id="formNuevaCuenta">
                     <div class="modal-body">
@@ -191,7 +193,7 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="nuevaVentaModalLabel"><i class="bi bi-cart-check"></i> Nueva Venta</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <form id="formNuevaVenta">
                     <div class="modal-body">
@@ -204,10 +206,12 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                             <select class="form-select" name="cuenta_id" required>
                                 <option value="">Seleccionar cuenta...</option>
                                 <?php
-                                $sql = "SELECT id, correo FROM cuentas WHERE estado = 'activa'";
+                                $sql = "SELECT id, correo, usuarios FROM cuentas ORDER BY correo";
                                 $resultado = mysqli_query($conn, $sql);
                                 while ($cuenta = mysqli_fetch_assoc($resultado)) {
-                                    echo "<option value='{$cuenta['id']}'>{$cuenta['correo']}</option>";
+                                    echo "<option value='{$cuenta['id']}'>" 
+                                       . htmlspecialchars($cuenta['correo']) 
+                                       . " ({$cuenta['usuarios']} usuarios)</option>";
                                 }
                                 ?>
                             </select>
@@ -240,19 +244,19 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
     <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Guardar Cuenta
+        // Manejar envío de nueva cuenta
         document.getElementById('formNuevaCuenta').addEventListener('submit', function(e) {
             e.preventDefault();
-            guardarDatos(this, 'modules/cuentas/guardar_cuenta.php');
+            enviarFormulario(this, 'modules/cuentas/guardar_cuenta.php');
         });
 
-        // Guardar Venta
+        // Manejar envío de nueva venta
         document.getElementById('formNuevaVenta').addEventListener('submit', function(e) {
             e.preventDefault();
-            guardarDatos(this, 'modules/ventas/guardar_venta.php');
+            enviarFormulario(this, 'modules/ventas/guardar_venta.php');
         });
 
-        function guardarDatos(form, url) {
+        function enviarFormulario(form, url) {
             const formData = new FormData(form);
             
             fetch(url, {
@@ -263,7 +267,8 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
             .then(data => {
                 if (data.success) {
                     alert(data.message);
-                    location.reload();
+                    form.reset();
+                    window.location.reload();
                 } else {
                     alert('Error: ' + data.error);
                 }
