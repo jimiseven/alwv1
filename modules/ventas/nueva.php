@@ -42,12 +42,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Obtener lista de cuentas con contador de usuarios
-$sql_cuentas = "SELECT c.id, c.correo, COUNT(v.id) as usuarios
-               FROM cuentas c
-               LEFT JOIN ventas v ON c.id = v.cuenta_id AND v.fecha_fin >= CURDATE()
-               GROUP BY c.id
-               ORDER BY usuarios ASC, c.correo";
+// Obtener lista de cuentas activas con contador de usuarios activos
+$sql_cuentas = "SELECT
+                  c.id,
+                  c.correo,
+                  (SELECT COUNT(*)
+                   FROM ventas v
+                   WHERE v.cuenta_id = c.id
+                   AND v.fecha_fin >= CURDATE()) as usuarios
+                FROM cuentas c
+                WHERE c.estado = 'activa'
+                ORDER BY c.correo";
 $result_cuentas = mysqli_query($conn, $sql_cuentas);
 ?>
 <!DOCTYPE html>
@@ -68,8 +73,8 @@ $result_cuentas = mysqli_query($conn, $sql_cuentas);
                 <select class="form-select" id="cuenta_id" name="cuenta_id" required>
                     <option value="">Seleccionar cuenta</option>
                     <?php while ($cuenta = mysqli_fetch_assoc($result_cuentas)): ?>
-                        <option value="<?= $cuenta['id'] ?>">
-                            <?= htmlspecialchars($cuenta['correo']) ?> - Usuarios: <?= $cuenta['usuarios'] ?>
+                        <option value="<?= $cuenta['id'] ?>" data-usuarios="<?= $cuenta['usuarios'] ?>">
+                            <?= htmlspecialchars($cuenta['correo']) ?> - <?= $cuenta['usuarios'] ?> usuario(s) activo(s)
                         </option>
                     <?php endwhile; ?>
                 </select>
@@ -96,5 +101,23 @@ $result_cuentas = mysqli_query($conn, $sql_cuentas);
     </div>
     
     <script src="../../assets/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Mostrar contador de usuarios al seleccionar cuenta
+        document.getElementById('cuenta_id').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const usuarios = selectedOption.dataset.usuarios || '0';
+            
+            // Crear o actualizar el contador
+            let counter = document.getElementById('usuarios-counter');
+            if (!counter) {
+                counter = document.createElement('div');
+                counter.id = 'usuarios-counter';
+                counter.className = 'alert alert-info mt-3';
+                this.parentNode.appendChild(counter);
+            }
+            
+            counter.innerHTML = `Esta cuenta tiene actualmente <strong>${usuarios}</strong> usuarios activos`;
+        });
+    </script>
 </body>
 </html>

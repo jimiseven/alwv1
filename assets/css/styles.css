@@ -48,3 +48,59 @@ main {
 .table-secondary {
     background-color: #e2e3e5;
 }
+.table-responsive-custom {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 400px;
+    margin-bottom: 1.5rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    padding: 0.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: #888 #f1f1f1;
+}
+
+/* Scrollbar personalizada */
+.table-responsive-custom::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.table-responsive-custom::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.table-responsive-custom::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.table-responsive-custom::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+  @media (max-width: 767px) {
+    .kpi-card {
+      margin-bottom: 1rem;
+    }
+  }
+  .kpi-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    text-align: center;
+  }
+  .kpi-title {
+    font-size: 1rem;
+    color: #888;
+    margin-bottom: 0.3rem;
+  }
+  .kpi-value {
+    font-size: 2.6rem;
+    font-weight: bold;
+    color: #007bff;
+  }
+  
