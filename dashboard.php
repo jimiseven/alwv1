@@ -1,17 +1,16 @@
 <?php
 require_once 'config/db.php';
 require_once 'config/config.php';
-requireLogin(); // Asegurarse de que está logueado
+requireLogin();
 
-// Consultar estadísticas de cuentas
+// Consultar estadísticas
 $sql_cuentas = "SELECT COUNT(*) as total_cuentas, 
-                      SUM(costo) as gastos_totales, 
-                      SUM(ganancia) as ganancias_totales 
-               FROM cuentas";
+                SUM(costo) as gastos_totales, 
+                SUM(ganancia) as ganancias_totales 
+                FROM cuentas";
 $resultado_cuentas = mysqli_query($conn, $sql_cuentas);
 $datos_cuentas = mysqli_fetch_assoc($resultado_cuentas);
 
-// Consultar total de usuarios (ventas activas)
 $sql_usuarios = "SELECT COUNT(*) as total_usuarios 
                 FROM ventas 
                 WHERE fecha_fin >= CURDATE()";
@@ -24,7 +23,7 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Sistema de Gestión</title>
+    <title>Dashboard - Sistema ALW</title>
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/styles.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
@@ -32,16 +31,14 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
 <body>
     <div class="container-fluid">
         <div class="row">
-            <!-- Incluir el sidebar -->
             <?php include 'includes/sidebar.php'; ?>
             
-            <!-- Contenido principal -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">Centralizador</h1>
                 </div>
                 
-                <!-- Primera tabla - Resumen de cuentas -->
+                <!-- Tabla Cuentas -->
                 <div class="table-responsive mb-4">
                     <table class="table table-bordered">
                         <thead class="table-secondary">
@@ -55,7 +52,6 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                         </thead>
                         <tbody>
                             <?php
-                            // Consultar cuentas con detalles
                             $sql = "SELECT id, correo, usuarios, costo, ganancia 
                                    FROM cuentas 
                                    ORDER BY id DESC";
@@ -63,13 +59,13 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                             
                             if (mysqli_num_rows($resultado) > 0) {
                                 while ($fila = mysqli_fetch_assoc($resultado)) {
-                                    echo "<tr>";
-                                    echo "<td>" . $fila['id'] . "</td>";
-                                    echo "<td>" . htmlspecialchars($fila['correo']) . "</td>";
-                                    echo "<td>" . $fila['usuarios'] . "</td>";
-                                    echo "<td>$" . number_format($fila['costo'], 2) . "</td>";
-                                    echo "<td>$" . number_format($fila['ganancia'] ?? 0, 2) . "</td>";
-                                    echo "</tr>";
+                                    echo "<tr>
+                                            <td>{$fila['id']}</td>
+                                            <td>" . htmlspecialchars($fila['correo']) . "</td>
+                                            <td>{$fila['usuarios']}</td>
+                                            <td>$" . number_format($fila['costo'], 2) . "</td>
+                                            <td>$" . number_format($fila['ganancia'] ?? 0, 2) . "</td>
+                                          </tr>";
                                 }
                             } else {
                                 echo "<tr><td colspan='5' class='text-center'>No hay cuentas registradas</td></tr>";
@@ -79,17 +75,18 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                     </table>
                 </div>
                 
-                <!-- Contador de cuentas -->
                 <div class="d-flex justify-content-between mb-4">
                     <div>
-                        <h1 class="display-1"><?php echo $datos_cuentas['total_cuentas'] ?? 0; ?></h1>
+                        <h1 class="display-1"><?= $datos_cuentas['total_cuentas'] ?? 0 ?></h1>
                     </div>
                     <div>
-                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#nuevaCuentaModal">Nueva cuenta</button>
+                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#nuevaCuentaModal">
+                            <i class="bi bi-plus-circle"></i> Nueva cuenta
+                        </button>
                     </div>
                 </div>
                 
-                <!-- Segunda tabla - Ventas activas -->
+                <!-- Tabla Ventas -->
                 <div class="table-responsive mb-4">
                     <table class="table table-bordered">
                         <thead class="table-secondary">
@@ -104,8 +101,8 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                         </thead>
                         <tbody>
                             <?php
-                            // Consultar ventas con detalles
-                            $sql = "SELECT v.id, c.correo, v.numero_celular, v.fecha_inicio, v.fecha_fin, v.dias 
+                            $sql = "SELECT v.id, c.correo, v.numero_celular, 
+                                   v.fecha_inicio, v.fecha_fin, v.dias 
                                    FROM ventas v 
                                    JOIN cuentas c ON v.cuenta_id = c.id 
                                    WHERE v.fecha_fin >= CURDATE()
@@ -114,14 +111,14 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                             
                             if (mysqli_num_rows($resultado) > 0) {
                                 while ($fila = mysqli_fetch_assoc($resultado)) {
-                                    echo "<tr>";
-                                    echo "<td>" . $fila['id'] . "</td>";
-                                    echo "<td>" . htmlspecialchars($fila['correo']) . "</td>";
-                                    echo "<td>" . htmlspecialchars($fila['numero_celular']) . "</td>";
-                                    echo "<td>" . date('d/m/Y', strtotime($fila['fecha_inicio'])) . "</td>";
-                                    echo "<td>" . date('d/m/Y', strtotime($fila['fecha_fin'])) . "</td>";
-                                    echo "<td>" . $fila['dias'] . "</td>";
-                                    echo "</tr>";
+                                    echo "<tr>
+                                            <td>{$fila['id']}</td>
+                                            <td>" . htmlspecialchars($fila['correo']) . "</td>
+                                            <td>" . htmlspecialchars($fila['numero_celular']) . "</td>
+                                            <td>" . date('d/m/Y', strtotime($fila['fecha_inicio'])) . "</td>
+                                            <td>" . date('d/m/Y', strtotime($fila['fecha_fin'])) . "</td>
+                                            <td>{$fila['dias']}</td>
+                                          </tr>";
                                 }
                             } else {
                                 echo "<tr><td colspan='6' class='text-center'>No hay ventas activas</td></tr>";
@@ -131,118 +128,111 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                     </table>
                 </div>
                 
-                <!-- Contador de usuarios -->
                 <div class="d-flex justify-content-between mb-4">
                     <div>
-                        <h1 class="display-1"><?php echo $datos_usuarios['total_usuarios'] ?? 0; ?></h1>
+                        <h1 class="display-1"><?= $datos_usuarios['total_usuarios'] ?? 0 ?></h1>
                         <p class="h4">USUARIOS</p>
                     </div>
                     <div>
-                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#nuevaVentaModal">Nueva venta</button>
+                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#nuevaVentaModal">
+                            <i class="bi bi-cart-plus"></i> Nueva venta
+                        </button>
                     </div>
                 </div>
-            </main>
+                </main>
         </div>
     </div>
+
     <!-- Modal Nueva Cuenta -->
     <div class="modal fade" id="nuevaCuentaModal" tabindex="-1" aria-labelledby="nuevaCuentaModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="nuevaCuentaModalLabel">Nueva Cuenta</h5>
+                    <h5 class="modal-title" id="nuevaCuentaModalLabel"><i class="bi bi-person-plus"></i> Nueva Cuenta</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <form id="formNuevaCuenta">
+                <form id="formNuevaCuenta">
+                    <div class="modal-body">
                         <div class="mb-3">
-                            <label for="correo" class="form-label">Correo</label>
-                            <input type="email" class="form-control" id="correo" name="correo" required>
+                            <label class="form-label">Correo</label>
+                            <input type="email" class="form-control" name="correo" required>
                         </div>
                         <div class="mb-3">
-                            <label for="contrasena_correo" class="form-label">Contraseña Correo</label>
-                            <input type="password" class="form-control" id="contrasena_correo" name="contrasena_correo" required>
+                            <label class="form-label">Contraseña Correo</label>
+                            <input type="password" class="form-control" name="contrasena_correo" required>
                         </div>
                         <div class="mb-3">
-                            <label for="contrasena_gpt" class="form-label">Contraseña GPT</label>
-                            <input type="password" class="form-control" id="contrasena_gpt" name="contrasena_gpt" required>
+                            <label class="form-label">Contraseña GPT</label>
+                            <input type="password" class="form-control" name="contrasena_gpt" required>
                         </div>
-                        <div class="mb-3">
-                            <label for="codigo" class="form-label">Código</label>
-                            <input type="text" class="form-control" id="codigo" name="codigo">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Fecha Inicio</label>
+                                <input type="date" class="form-control" name="fecha_inicio" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Costo</label>
+                                <input type="number" step="0.01" class="form-control" name="costo" required>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="fecha_inicio" class="form-label">Fecha Inicio</label>
-                            <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="costo" class="form-label">Costo</label>
-                            <input type="number" step="0.01" class="form-control" id="costo" name="costo" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="estado" class="form-label">Estado</label>
-                            <select class="form-select" id="estado" name="estado">
-                                <option value="activa" selected>Activa</option>
-                                <option value="inactiva">Inactiva</option>
-                                <option value="suspendida">Suspendida</option>
-                                <option value="baneada">Baneada</option>
-                            </select>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" class="btn btn-primary" id="btnGuardarCuenta">Guardar</button>
-                </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-    
+
     <!-- Modal Nueva Venta -->
     <div class="modal fade" id="nuevaVentaModal" tabindex="-1" aria-labelledby="nuevaVentaModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="nuevaVentaModalLabel">Nueva Venta</h5>
+                    <h5 class="modal-title" id="nuevaVentaModalLabel"><i class="bi bi-cart-check"></i> Nueva Venta</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <form id="formNuevaVenta">
+                <form id="formNuevaVenta">
+                    <div class="modal-body">
                         <div class="mb-3">
-                            <label for="numero_celular" class="form-label">Número Celular</label>
-                            <input type="text" class="form-control" id="numero_celular" name="numero_celular" required>
+                            <label class="form-label">Número Celular</label>
+                            <input type="text" class="form-control" name="numero_celular" required>
                         </div>
                         <div class="mb-3">
-                            <label for="cuenta_id" class="form-label">Cuenta</label>
-                            <select class="form-select" id="cuenta_id" name="cuenta_id" required>
+                            <label class="form-label">Cuenta</label>
+                            <select class="form-select" name="cuenta_id" required>
                                 <option value="">Seleccionar cuenta...</option>
                                 <?php
-                                $sql_cuentas = "SELECT id, correo FROM cuentas WHERE estado = 'activa'";
-                                $resultado_cuentas = mysqli_query($conn, $sql_cuentas);
-                                while ($cuenta = mysqli_fetch_assoc($resultado_cuentas)) {
-                                    echo "<option value='" . $cuenta['id'] . "'>" . htmlspecialchars($cuenta['correo']) . "</option>";
+                                $sql = "SELECT id, correo FROM cuentas WHERE estado = 'activa'";
+                                $resultado = mysqli_query($conn, $sql);
+                                while ($cuenta = mysqli_fetch_assoc($resultado)) {
+                                    echo "<option value='{$cuenta['id']}'>{$cuenta['correo']}</option>";
                                 }
                                 ?>
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label for="fecha_inicio" class="form-label">Fecha Inicio</label>
-                            <input type="date" class="form-control" id="fecha_inicio_venta" name="fecha_inicio" required>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Fecha Inicio</label>
+                                <input type="date" class="form-control" name="fecha_inicio" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Fecha Fin</label>
+                                <input type="date" class="form-control" name="fecha_fin" required>
+                            </div>
                         </div>
                         <div class="mb-3">
-                            <label for="fecha_fin" class="form-label">Fecha Fin</label>
-                            <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" required>
+                            <label class="form-label">Pago</label>
+                            <input type="number" step="0.01" class="form-control" name="pago" required>
                         </div>
-                        <div class="mb-3">
-                            <label for="pago" class="form-label">Pago</label>
-                            <input type="number" step="0.01" class="form-control" id="pago" name="pago" required>
-                        </div>
-                        <input type="hidden" name="vendedor_id" value="<?php echo $_SESSION['user_id']; ?>">
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" class="btn btn-primary" id="btnGuardarVenta">Guardar</button>
-                </div>
+                        <input type="hidden" name="vendedor_id" value="<?= $_SESSION['user_id'] ?>">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -250,41 +240,29 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
     <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Botón para guardar nueva cuenta
-        document.getElementById('btnGuardarCuenta').addEventListener('click', function() {
-            let formData = new FormData(document.getElementById('formNuevaCuenta'));
-            
-            fetch('modules/cuentas/guardar_cuenta.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Cuenta guardada correctamente');
-                    location.reload();
-                } else {
-                    alert('Error: ' + data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Ocurrió un error al guardar la cuenta');
-            });
+        // Guardar Cuenta
+        document.getElementById('formNuevaCuenta').addEventListener('submit', function(e) {
+            e.preventDefault();
+            guardarDatos(this, 'modules/cuentas/guardar_cuenta.php');
         });
 
-        // Botón para guardar nueva venta
-        document.getElementById('btnGuardarVenta').addEventListener('click', function() {
-            let formData = new FormData(document.getElementById('formNuevaVenta'));
+        // Guardar Venta
+        document.getElementById('formNuevaVenta').addEventListener('submit', function(e) {
+            e.preventDefault();
+            guardarDatos(this, 'modules/ventas/guardar_venta.php');
+        });
+
+        function guardarDatos(form, url) {
+            const formData = new FormData(form);
             
-            fetch('modules/ventas/guardar_venta.php', {
+            fetch(url, {
                 method: 'POST',
                 body: formData
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Venta guardada correctamente');
+                    alert(data.message);
                     location.reload();
                 } else {
                     alert('Error: ' + data.error);
@@ -292,9 +270,9 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Ocurrió un error al guardar la venta');
+                alert('Error al procesar la solicitud');
             });
-        });
+        }
     });
     </script>
 </body>
