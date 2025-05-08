@@ -1,7 +1,12 @@
 <?php
 require_once 'config/db.php';
 require_once 'config/config.php';
-requireLogin();
+
+// Verificar sesión
+if (!isset($_SESSION['user_id'])) {
+    header("Location: " . BASE_URL . "auth/login.php");
+    exit;
+}
 
 // Consultar estadísticas (solo cuentas activas)
 $sql_cuentas = "SELECT COUNT(*) as total_cuentas,
@@ -53,6 +58,8 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                 width: 80%;
                 transition: all 0.3s ease;
                 z-index: 1000;
+                background: white;
+                box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
             }
 
             .sidebar.active {
@@ -69,7 +76,7 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
             }
 
             /* Tablas responsive */
-            .table-scroll-container {
+            .table-responsive {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
                 margin-bottom: 1rem;
@@ -97,18 +104,6 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                 justify-content: center;
                 box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             }
-
-            z-index: 1000;
-            width: 260px;
-            background: white;
-            transform: translateX(-100%);
-            transition: transform var(--transition-speed) ease;
-            overflow-y: auto;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-        }
-
-        .sidebar.show {
-            transform: translateX(0);
         }
 
         .sidebar-backdrop {
@@ -314,13 +309,13 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
 </head>
 
 <body>
-    <div class="container-fluid">
+    <div class="container-fluid p-0">
         <button class="mobile-menu-btn d-lg-none" id="mobileMenuBtn">
             <i class="bi bi-list"></i>
         </button>
-        <div class="row">
+        <div class="d-flex">
             <?php include 'includes/sidebar.php'; ?>
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 pt-3 content-padding-top">
+            <main class="flex-grow-1 p-4" style="overflow-y: auto; height: 100vh;">
                 <!-- Métricas -->
                 <div class="row g-3 mb-4">
                     <div class="col-12 col-md-3">
@@ -356,8 +351,8 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                         <i class="bi bi-plus-circle"></i> Nueva cuenta
                     </button>
                 </div>
-                <div class="table-scroll-container">
-                    <table class="table table-hover align-middle mb-0">
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-hover align-middle mb-0 sticky-header">
                         <thead class="sticky-top bg-light">
                             <tr>
                                 <th>N°</th>
@@ -401,8 +396,8 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                         <i class="bi bi-cart-plus"></i> Nueva venta
                     </button>
                 </div>
-                <div class="table-container">
-                    <table class="table table-hover align-middle">
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-hover align-middle sticky-header">
                         <thead class="sticky-top bg-light">
                             <tr>
                                 <th>N°</th>
@@ -460,11 +455,11 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                             <input type="email" class="form-control" name="correo" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Contraseña Correo</label>
+                            <label class="form-label">contrasena Correo</label>
                             <input type="password" class="form-control" name="contrasena_correo" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Contraseña GPT</label>
+                            <label class="form-label">contrasena GPT</label>
                             <input type="password" class="form-control" name="contrasena_gpt" required>
                         </div>
                         <div class="mb-3">

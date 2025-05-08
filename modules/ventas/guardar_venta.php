@@ -95,7 +95,7 @@ Datos para ingresar a la cuenta de Chat GPT
 
 Cuenta Chat GPT Plus (tiempo en días: $dias días)
 Correo: $correo
-Contraseña: $contrasena_gpt
+contrasena: $contrasena_gpt
 
 Fecha ini: $fecha_ini
 Fecha end: $fecha_end

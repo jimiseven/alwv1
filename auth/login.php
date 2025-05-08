@@ -1,69 +1,57 @@
-// auth/login.php
 <?php
 require_once '../config/db.php';
 require_once '../config/config.php';
 
-$error = '';
-
-// Si el usuario ya está logueado, redirigir al dashboard
-if (isLoggedIn()) {
+// Verificar si ya está logueado
+if (isset($_SESSION['user_id'])) {
     header("Location: " . BASE_URL . "dashboard.php");
     exit;
 }
 
-// Procesar el formulario cuando se envía
+// Procesar formulario
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $usuario = trim($_POST['usuario']);
-    $password = trim($_POST['contraseña']);
-    
-    // Validar que se proporcionaron ambos campos
+    $password = trim($_POST['contrasena']);
+
+    // Validar campos
     if (empty($usuario) || empty($password)) {
-        $error = "Por favor ingrese usuario y contraseña.";
+        $_SESSION['error'] = "Usuario y contraseña son requeridos";
     } else {
-        // Consultar la base de datos
-        $sql = "SELECT id, usuario, contraseña, activo FROM vendedores WHERE usuario = ?";
+        // Consultar usuario
+        $sql = "SELECT id, usuario, contrasena, activo FROM vendedores WHERE usuario = ?";
+        $stmt = mysqli_prepare($conn, $sql);
+        mysqli_stmt_bind_param($stmt, "s", $usuario);
         
-        if ($stmt = mysqli_prepare($conn, $sql)) {
-            mysqli_stmt_bind_param($stmt, "s", $param_usuario);
-            $param_usuario = $usuario;
+        if (mysqli_stmt_execute($stmt)) {
+            mysqli_stmt_store_result($stmt);
             
-            if (mysqli_stmt_execute($stmt)) {
-                mysqli_stmt_store_result($stmt);
+            if (mysqli_stmt_num_rows($stmt) == 1) {
+                mysqli_stmt_bind_result($stmt, $id, $usuario, $hashed_password, $activo);
+                mysqli_stmt_fetch($stmt);
                 
-                // Verificar si el usuario existe
-                if (mysqli_stmt_num_rows($stmt) == 1) {
-                    mysqli_stmt_bind_result($stmt, $id, $usuario, $hashed_password, $activo);
+                if ($activo && password_verify($password, $hashed_password)) {
+                    // Autenticación exitosa
+                    $_SESSION['user_id'] = $id;
+                    $_SESSION['username'] = $usuario;
                     
-                    if (mysqli_stmt_fetch($stmt)) {
-                        // Verificar si el usuario está activo
-                        if ($activo) {
-                            // Verificar la contraseña
-                            if (password_verify($password, $hashed_password)) {
-                                // Contraseña correcta, iniciar sesión
-                                $_SESSION["user_id"] = $id;
-                                $_SESSION["username"] = $usuario;
-                                
-                                // Redirigir al usuario al dashboard
-                                header("Location: " . BASE_URL . "dashboard.php");
-                                exit;
-                            } else {
-                                $error = "La contraseña ingresada no es válida.";
-                            }
-                        } else {
-                            $error = "Esta cuenta no está activa. Contacte al administrador.";
-                        }
-                    }
+                    // Regenerar ID de sesión
+                    session_regenerate_id(true);
+                    
+                    header("Location: " . BASE_URL . "dashboard.php");
+                    exit;
                 } else {
-                    $error = "No existe un usuario con ese nombre.";
+                    $_SESSION['error'] = "Credenciales inválidas o cuenta inactiva";
                 }
             } else {
-                $error = "Error en la consulta. Intente más tarde.";
+                $_SESSION['error'] = "Usuario no encontrado";
             }
-            
-            mysqli_stmt_close($stmt);
+        } else {
+            $_SESSION['error'] = "Error en la base de datos";
         }
+        mysqli_stmt_close($stmt);
     }
 }
+mysqli_close($conn);
 ?>
 
 <!DOCTYPE html>
@@ -71,43 +59,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Sistema de Ventas</title>
-    <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="../assets/css/styles.css">
+    <title>Login</title>
+    <link href="<?= BASE_URL ?>assets/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="bg-light">
-    <div class="container">
-        <div class="row justify-content-center mt-5">
-            <div class="col-md-6 col-lg-4">
-                <div class="card shadow">
-                    <div class="card-header bg-primary text-white text-center">
-                        <h4>ALW</h4>
-                        <p class="mb-0">Sistema de Gestión</p>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="text-center">Iniciar Sesión</h3>
                     </div>
                     <div class="card-body">
-                        <?php if (!empty($error)): ?>
-                            <div class="alert alert-danger"><?php echo $error; ?></div>
+                        <?php if (isset($_SESSION['error'])): ?>
+                            <div class="alert alert-danger"><?= $_SESSION['error'] ?></div>
+                            <?php unset($_SESSION['error']); ?>
                         <?php endif; ?>
                         
-                        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-                            <div class="mb-3">
-                                <label for="usuario" class="form-label">Usuario:</label>
+                        <form method="POST" action="">
+                            <div class="form-group">
+                                <label for="usuario">Usuario</label>
                                 <input type="text" class="form-control" id="usuario" name="usuario" required>
                             </div>
-                            <div class="mb-3">
-                                <label for="contraseña" class="form-label">Contraseña:</label>
-                                <input type="password" class="form-control" id="contraseña" name="contraseña" required>
+                            <div class="form-group">
+                                <label for="contrasena">Contraseña</label>
+                                <input type="password" class="form-control" id="contrasena" name="contrasena" required>
                             </div>
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary">Ingresar</button>
-                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Ingresar</button>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <script src="../assets/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
