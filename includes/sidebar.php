@@ -26,13 +26,6 @@
                     <i class="bi bi-cart me-2"></i> Ventas
                 </a>
             </li>
-            <li class="nav-item mb-2">
-                <a class="nav-link text-white rounded-pill <?php echo strpos($_SERVER['PHP_SELF'], '/reportes/') ? 'active bg-primary' : ''; ?>"
-                    href="<?php echo BASE_URL; ?>modules/reportes/index.php"
-                    style="transition: all 0.3s;">
-                    <i class="bi bi-file-earmark-text me-2"></i> Estado económico
-                </a>
-            </li>
 
             <div class="mt-5 pt-3 border-top border-secondary">
                 <li class="nav-item">
