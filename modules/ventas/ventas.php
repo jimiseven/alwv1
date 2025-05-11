@@ -169,6 +169,44 @@ requireLogin();
         margin: 0;
       }
     }
+
+    /* vista movil */
+    .venta-card-custom {
+      background: #f8f9fa;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 10px;
+      margin-bottom: 16px;
+      position: relative;
+      min-width: 220px;
+    }
+
+    .venta-card-custom .edit-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      z-index: 2;
+    }
+
+    .venta-card-custom .venta-datos {
+      background: #fff;
+      border-radius: 4px;
+      padding: 10px 12px;
+      margin: 10px 0 18px 0;
+      display: inline-block;
+    }
+
+    .venta-card-custom .venta-btns {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .venta-card-custom .venta-btns button {
+      width: 48%;
+    }
+
+    /* vista movil */
   </style>
 </head>
 
@@ -371,34 +409,39 @@ requireLogin();
                 $diasMostrar = $diasRestantes;
               }
 
-              echo "<div class='venta-card'>
-                    <div class='venta-header'>
-                        <div class='title'>" . htmlspecialchars($fila['numero_celular']) . "</div>
-                        <div class='badge {$claseBadge}'>
-                            {$diasMostrar}
-                        </div>
-                    </div>
-                    <div class='venta-body'>
-                        <p><strong>TC:</strong> {$diasContratados}</p>
-                        <p><i class='bi bi-cash-coin me-2'></i>$" . number_format($fila['pago'], 2) . "</p>
-                        <p><i class='bi bi-envelope me-2'></i>" . htmlspecialchars($fila['cuenta_correo']) . "</p>
-                        <p><i class='bi bi-calendar me-2'></i>{$diaInicio} {$mesInicio} {$anoInicio}</p>
-                        <p><i class='bi bi-calendar-check me-2'></i>{$diaFin} {$mesFin} {$anoFin}</p>
-                        <div class='mobile-actions'>
-                            <button class='btn btn-sm btn-warning edit-venta me-1' 
-                                data-id='{$fila['id']}'
-                                data-numero_celular='{$fila['numero_celular']}'
-                                data-fecha_inicio='{$fila['fecha_inicio']}'
-                                data-fecha_fin='{$fila['fecha_fin']}'
-                                data-pago='{$fila['pago']}'
-                                data-cuenta_id='{$fila['cuenta_id']}'
-                                data-vendedor_id='{$_SESSION['user_id']}'>
-                                <i class='bi bi-pencil'></i>
-                            </button>
-                            <!-- Resto de botones -->
-                        </div>
-                    </div>
-                </div>";
+              echo "<div class='venta-card-custom mb-3'>
+        <div class='edit-btn'>
+            <button class='btn btn-warning btn-sm edit-venta'
+                data-id='{$fila['id']}'
+                data-numero_celular='{$fila['numero_celular']}'
+                data-fecha_inicio='{$fila['fecha_inicio']}'
+                data-fecha_fin='{$fila['fecha_fin']}'
+                data-pago='{$fila['pago']}'
+                data-cuenta_id='{$fila['cuenta_id']}'
+                data-vendedor_id='{$_SESSION['user_id']}'>
+                <i class='bi bi-pencil'></i>
+            </button>
+        </div>
+        <div class='text-start fw-bold fs-5 mb-2' style='padding-left:8px;'>" . htmlspecialchars($fila['numero_celular']) . "</div>
+        <div class='venta-datos mx-auto mb-3' style='background:#fff; border-radius:4px; padding:10px 12px; display:inline-block;'>
+            <div><strong>TC:</strong> {$diasContratados}</div>
+            <div><i class='bi bi-cash-coin me-2'></i>$" . number_format($fila['pago'], 2) . "</div>
+            <div><i class='bi bi-envelope me-2'></i>" . htmlspecialchars($fila['cuenta_correo']) . "</div>
+            <div><i class='bi bi-calendar me-2'></i>{$diaInicio} {$mesInicio} {$anoInicio}</div>
+            <div><i class='bi bi-calendar-check me-2'></i>{$diaFin} {$mesFin} {$anoFin}</div>
+        </div>
+        <div class='venta-btns d-flex justify-content-between gap-2 px-2 pb-2'>
+            <button class='btn btn-outline-dark w-50 delete-venta' data-id='{$fila['id']}'>Eliminar</button>
+            <button class='btn btn-outline-dark w-50 copy-btn'
+                data-correo='" . htmlspecialchars($fila['cuenta_correo'], ENT_QUOTES) . "'
+                data-contrasena='" . htmlspecialchars($fila['contrasena_gpt'], ENT_QUOTES) . "'
+                data-inicio='{$diaInicio} {$mesInicio} {$anoInicio}'
+                data-fin='{$diaFin} {$mesFin} {$anoFin}'
+                data-dias='{$diasContratados}'>
+                Copiar
+            </button>
+        </div>
+    </div>";
             }
           } else {
             echo "<div class='text-center p-4'>No hay ventas registradas</div>";
@@ -508,11 +551,8 @@ requireLogin();
                     .then(res => res.json())
                     .then(data => {
                       if (data.success) {
-                        // Eliminar del DOM
-                        const card = btn.closest('.venta-card');
-                        if (card) card.remove();
-                        const row = btn.closest('tr');
-                        if (row) row.remove();
+                        // Recargar la página completa
+                        window.location.reload();
                       } else {
                         alert('Error al eliminar la venta: ' + (data.error || 'Error desconocido'));
                       }
@@ -523,6 +563,7 @@ requireLogin();
                     });
                 }
               }
+
 
               // Copiar al portapapeles
               if (event.target.closest('.copy-btn')) {
@@ -703,22 +744,22 @@ Ingresa ahora por favor y te paso los códigos de activación`;
           document.addEventListener('DOMContentLoaded', function() {
             // Función de búsqueda unificada
             function handleSearch(searchTerm) {
-              const term = searchTerm.toLowerCase();
+              const term = searchTerm.toLowerCase().trim();
 
-              // Desktop: Buscar en 3ra columna (Número celular)
+              // Filtrar tabla desktop
               document.querySelectorAll('.table tbody tr').forEach(row => {
                 const celular = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
                 row.style.display = celular.includes(term) ? '' : 'none';
               });
 
-              // Móvil: Buscar en elemento con clase 'title'
-              document.querySelectorAll('.venta-card').forEach(card => {
-                const celular = card.querySelector('.title').textContent.toLowerCase();
+              // Filtrar cards móviles (versión actualizada)
+              document.querySelectorAll('.venta-card-custom').forEach(card => {
+                const celular = card.querySelector('.text-start').textContent.toLowerCase(); // Cambiado a .text-start
                 card.style.display = celular.includes(term) ? 'block' : 'none';
               });
             }
 
-            // Eventos para ambos inputs
+            // Eventos de búsqueda
             document.getElementById('searchInput').addEventListener('input', function() {
               handleSearch(this.value);
             });
@@ -726,44 +767,14 @@ Ingresa ahora por favor y te paso los códigos de activación`;
             document.getElementById('mobileSearch').addEventListener('input', function() {
               handleSearch(this.value);
             });
-          });
-        </script>
-        <script>
-          document.addEventListener('DOMContentLoaded', function() {
-            function handleSearch(searchTerm) {
-              const term = searchTerm.toLowerCase();
 
-              // Mostrar todas las filas si el término está vacío
-              document.querySelectorAll('.table tbody tr').forEach(row => {
-                const celular = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
-                row.style.display = term === '' || celular.includes(term) ? '' : 'none';
-              });
-
-              // Mostrar todas las cards si el término está vacío
-              document.querySelectorAll('.venta-card').forEach(card => {
-                const celular = card.querySelector('.title').textContent.toLowerCase();
-                card.style.display = term === '' || celular.includes(term) ? 'block' : 'none';
-              });
-            }
-
-            // Buscar en desktop
-            document.getElementById('searchInput').addEventListener('input', function() {
-              handleSearch(this.value);
-            });
-
-            // Buscar en móvil
-            document.getElementById('mobileSearch').addEventListener('input', function() {
-              handleSearch(this.value);
-            });
-
-            // Limpiar búsqueda en desktop
+            // Botones para limpiar búsqueda
             document.getElementById('clearSearchInput').addEventListener('click', function() {
               document.getElementById('searchInput').value = '';
               handleSearch('');
               document.getElementById('searchInput').focus();
             });
 
-            // Limpiar búsqueda en móvil
             document.getElementById('clearMobileSearchInput').addEventListener('click', function() {
               document.getElementById('mobileSearch').value = '';
               handleSearch('');
@@ -771,6 +782,7 @@ Ingresa ahora por favor y te paso los códigos de activación`;
             });
           });
         </script>
+
         <script>
           document.addEventListener('DOMContentLoaded', function() {
             document.body.addEventListener('click', function(e) {
