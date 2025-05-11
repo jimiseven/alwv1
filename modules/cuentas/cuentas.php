@@ -285,23 +285,16 @@ requireLogin();
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const modalEliminar = new bootstrap.Modal(document.getElementById('modalEliminarCuenta'));
+            let cuentaAEliminar = null;
+
+            // Delegación de eventos para botón eliminar
             document.body.addEventListener('click', function(e) {
-                const deleteBtn = e.target.closest('.delete-cuenta');
-
-                if (deleteBtn) {
-                    const id = deleteBtn.dataset.id; // Obtener el ID del botón
-                    const confirmBtn = document.getElementById('btnConfirmarEliminarCuenta');
-
-                    if (!id || !confirmBtn) {
-                        alert("Error: No se pudo obtener el ID de la cuenta.");
-                        return;
-                    }
-
-                    // Asignar ID al botón de confirmación
-                    confirmBtn.dataset.id = id;
-
-                    // Mostrar modal
-                    new bootstrap.Modal(document.getElementById('modalEliminarCuenta')).show();
+                const btn = e.target.closest('.delete-cuenta');
+                if (btn) {
+                    cuentaAEliminar = btn.closest('tr');
+                    document.getElementById('btnConfirmarEliminarCuenta').dataset.id = btn.dataset.id;
+                    modalEliminar.show();
                 }
             });
 
@@ -309,45 +302,66 @@ requireLogin();
             document.getElementById('btnConfirmarEliminarCuenta').addEventListener('click', function() {
                 const id = this.dataset.id;
 
-                if (!id) {
-                    alert("Error: ID no válido.");
-                    return;
-                }
-
                 fetch('eliminar_cuenta.php', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'Content-Type': 'application/x-www-form-urlencoded'
                         },
-                        body: `id=${encodeURIComponent(id)}` // Enviar como parámetro POST
+                        body: 'id=' + encodeURIComponent(id)
                     })
-                    .then(response => response.json())
+                    .then(res => res.json())
                     .then(data => {
                         if (data.success) {
-                            // Eliminar la fila de la tabla
-                            document.querySelector(`.delete-cuenta[data-id="${id}"]`).closest('tr').remove();
-                            // Actualizar total gasto (si aplica)
-                            updateTotalGasto(data.deleted_amount);
+                            // Mostrar alerta de éxito
+                            showAlert('Cuenta eliminada exitosamente', 'success');
+
+                            // Cerrar modal
+                            modalEliminar.hide();
+
+                            // Eliminar fila de la tabla
+                            if (cuentaAEliminar) {
+                                cuentaAEliminar.remove();
+                                updateTotalGasto(data.deleted_amount || 0);
+                            }
                         } else {
-                            alert('Error: ' + (data.error || 'Error desconocido'));
+                            showAlert('Error al eliminar: ' + (data.error || 'Error desconocido'), 'danger');
                         }
                     })
                     .catch(error => {
+                        showAlert('Error en la conexión', 'danger');
                         console.error('Error:', error);
-                        alert('Error en la conexión');
                     });
             });
 
-            // Función para actualizar el total
-            function updateTotalGasto(amount) {
+            // Función para mostrar notificaciones
+            function showAlert(message, type) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${type} alert-dismissible fade show fixed-top mx-3 mt-3`;
+                alertDiv.role = 'alert';
+                alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+                document.body.prepend(alertDiv);
+
+                // Eliminar automáticamente después de 3 segundos
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 3000);
+            }
+
+            // Función para actualizar total (ajusta los selectores según tu estructura)
+            function updateTotalGasto(amountToSubtract) {
                 const totalElement = document.querySelector('tfoot th:nth-child(4)');
                 if (totalElement) {
                     const currentTotal = parseFloat(totalElement.textContent.replace('$', '').replace(/,/g, ''));
-                    totalElement.textContent = '$' + (currentTotal - amount).toFixed(2);
+                    totalElement.textContent = '$' + (currentTotal - amountToSubtract).toFixed(2);
                 }
             }
         });
     </script>
+
 
     <!-- Modal Nueva Cuenta -->
     <div class="modal fade" id="nuevaCuentaModal" tabindex="-1" aria-labelledby="nuevaCuentaModalLabel" aria-hidden="true">
