@@ -172,38 +172,95 @@ requireLogin();
 
     /* vista movil */
     .venta-card-custom {
-      background: #f8f9fa;
-      border: 1px solid #333;
-      border-radius: 4px;
-      padding: 10px;
-      margin-bottom: 16px;
+      background: #f4f6fb;
+      border: 1.5px solid #e0e3e8;
+      border-radius: 12px;
+      padding: 16px 12px 12px 12px;
+      margin-bottom: 20px;
       position: relative;
       min-width: 220px;
+      box-shadow: 0 2px 10px 0 rgba(60, 60, 60, .05);
+      transition: box-shadow 0.2s;
+    }
+
+    .venta-card-custom:hover {
+      box-shadow: 0 4px 16px 0 rgba(60, 60, 60, .12);
     }
 
     .venta-card-custom .edit-btn {
       position: absolute;
-      top: 8px;
-      right: 8px;
+      top: 10px;
+      right: 10px;
       z-index: 2;
     }
 
     .venta-card-custom .venta-datos {
       background: #fff;
-      border-radius: 4px;
-      padding: 10px 12px;
-      margin: 10px 0 18px 0;
-      display: inline-block;
+      border-radius: 8px;
+      padding: 14px 14px 10px 14px;
+      margin: 18px 0 18px 0;
+      display: block;
+      box-shadow: 0 1px 4px 0 rgba(120, 120, 120, .07);
+      font-size: 1rem;
+    }
+
+    .venta-card-custom .venta-datos div {
+      margin-bottom: 6px;
+      color: #222;
     }
 
     .venta-card-custom .venta-btns {
       display: flex;
       justify-content: space-between;
-      gap: 10px;
+      gap: 12px;
+      margin-top: 10px;
     }
 
     .venta-card-custom .venta-btns button {
-      width: 48%;
+      width: 50%;
+      font-weight: 500;
+      border-radius: 6px;
+      padding: 8px 0;
+      font-size: 1rem;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .venta-card-custom .venta-btns .btn-outline-dark {
+      border: 1.5px solid #222;
+      color: #222;
+      background: #fff;
+    }
+
+    .venta-card-custom .venta-btns .btn-outline-dark:hover {
+      background: #222;
+      color: #fff;
+    }
+
+    .venta-card-custom .text-start {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      letter-spacing: 0.5px;
+      margin-bottom: 0;
+      padding-left: 2px;
+    }
+
+    @media (max-width: 400px) {
+      .venta-card-custom {
+        padding: 10px 3px 10px 3px;
+      }
+
+      .venta-card-custom .venta-datos {
+        background: #f4f6fb;
+        /* Cambia aquí el color de fondo */
+        border-radius: 8px;
+        padding: 14px 14px 10px 14px;
+        margin: 18px 0 18px 0;
+        display: block;
+        box-shadow: 0 1px 4px 0 rgba(120, 120, 120, .07);
+        font-size: 1rem;
+      }
+
     }
 
     /* vista movil */
