@@ -8,17 +8,16 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-// Consultar estadísticas (solo cuentas activas)
-$sql_cuentas = "SELECT COUNT(*) as total_cuentas,
+// Consultar estadísticas (todas las cuentas)
+$sql_cuentas = "SELECT 
+            COUNT(*) as total_cuentas,
             SUM(costo) as gastos_totales,
-            SUM(ganancia) as ganancias_totales,
-            (SELECT COUNT(*) FROM ventas WHERE fecha_fin >= CURDATE() AND cuenta_id = cuentas.id) as total_usuarios
-            FROM cuentas
-            WHERE estado = 'activa'";
+            (SELECT SUM(pago) FROM ventas) - SUM(costo) as ganancias_totales
+            FROM cuentas";
 $resultado_cuentas = mysqli_query($conn, $sql_cuentas);
 $datos_cuentas = mysqli_fetch_assoc($resultado_cuentas);
 
-$sql_usuarios = "SELECT COUNT(DISTINCT cuenta_id) as total_usuarios
+$sql_usuarios = "SELECT COUNT(DISTINCT numero_celular) as total_usuarios
             FROM ventas
             WHERE fecha_fin >= CURDATE()";
 $resultado_usuarios = mysqli_query($conn, $sql_usuarios);
@@ -320,7 +319,7 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                 <div class="row g-3 mb-4">
                     <div class="col-12 col-md-3">
                         <div class="metric-card">
-                            <div class="text-muted small">Cuentas activas</div>
+                            <div class="text-muted small">Total cuentas</div>
                             <div class="h2"><?= $datos_cuentas['total_cuentas'] ?? 0 ?></div>
                         </div>
                     </div>
