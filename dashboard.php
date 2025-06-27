@@ -365,8 +365,9 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                         <tbody>
                             <?php
                             $sql = "SELECT c.id, c.correo,
-                                   (SELECT COUNT(*) FROM ventas v WHERE v.cuenta_id = c.id AND v.fecha_fin >= CURDATE()) as usuarios,
-                                   c.costo, c.ganancia
+                                   (SELECT COUNT(DISTINCT numero_celular) FROM ventas WHERE cuenta_id = c.id) as usuarios,
+                                   c.costo,
+                                   (SELECT SUM(pago) FROM ventas WHERE cuenta_id = c.id) as ganancia_total
                                    FROM cuentas c
                                    ORDER BY c.id DESC";
                             $resultado = mysqli_query($conn, $sql);
@@ -378,7 +379,7 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                                             <td>" . htmlspecialchars($fila['correo']) . "</td>
                                             <td>{$fila['usuarios']}</td>
                                             <td>$" . number_format($fila['costo'], 2) . "</td>
-                                            <td>$" . number_format($fila['ganancia'] ?? 0, 2) . "</td>
+                                            <td>$" . number_format($fila['ganancia_total'] ?? 0, 2) . "</td>
                                           </tr>";
                                 }
                             } else {
