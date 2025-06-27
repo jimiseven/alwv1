@@ -315,6 +315,19 @@ requireLogin();
             });
         });
 
+        // Mostrar notificación
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show fixed-top mx-3 mt-3`;
+            alertDiv.role = 'alert';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.prepend(alertDiv);
+            setTimeout(() => alertDiv.remove(), 3000);
+        }
+
         // Guardar cambios de edición
         document.getElementById('formEditarCuenta').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -325,8 +338,34 @@ requireLogin();
                 })
                 .then(res => res.json())
                 .then(data => {
-                    if (data.success) window.location.reload();
-                    else alert('Error al editar cuenta');
+                    if (data.success) {
+                        showAlert('Cuenta editada correctamente', 'success');
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        showAlert('Error: ' + (data.error || 'Error al editar cuenta'), 'danger');
+                    }
+                });
+        });
+
+        // Guardar nueva cuenta
+        document.getElementById('formNuevaCuenta').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch('guardar_cuenta.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert('Cuenta creada correctamente', 'success');
+                        setTimeout(() => {
+                            bootstrap.Modal.getInstance(document.getElementById('nuevaCuentaModal')).hide();
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        showAlert('Error: ' + (data.error || 'Error al crear cuenta'), 'danger');
+                    }
                 });
         });
     </script>

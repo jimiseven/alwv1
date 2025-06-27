@@ -41,7 +41,7 @@ try {
     mysqli_stmt_bind_param($stmt, "ssssssdsi", $correo, $contrasena_correo, $contrasena_gpt, $codigo, $fecha_inicio, $fecha_fin, $costo, $estado, $usuarios);
     
     if (mysqli_stmt_execute($stmt)) {
-        echo json_encode(['success' => true, 'message' => 'Cuenta guardada correctamente']);
+        echo json_encode(['success' => true]);
     } else {
         throw new Exception("Error en la base de datos: " . mysqli_error($conn));
     }
