@@ -1,0 +1,3 @@
+Ahora puedes intentar iniciar sesión con 'joe1' y '123qwe'.
+
+tomar en cuanta el crifrado de contraseñas, revisar otras funcionalidades para el login
