@@ -131,6 +131,9 @@ requireLogin();
                                         <button class='btn btn-sm btn-warning edit-cuenta' 
                                             data-id='{$fila['id']}'
                                             data-correo='" . htmlspecialchars($fila['correo'], ENT_QUOTES) . "'
+                                            data-contrasena-correo='" . htmlspecialchars($fila['contrasena_correo'], ENT_QUOTES) . "'
+                                            data-contrasena-gpt='" . htmlspecialchars($fila['contrasena_gpt'], ENT_QUOTES) . "'
+                                            data-codigo='" . htmlspecialchars($fila['codigo'] ?? '', ENT_QUOTES) . "'
                                             data-fecha_inicio='{$fila['fecha_inicio']}'
                                             data-costo='{$fila['costo']}'
                                             data-estado='{$fila['estado']}'
@@ -198,8 +201,21 @@ requireLogin();
                             <input type="email" class="form-control" name="correo" id="edit-correo" required>
                         </div>
                         <div class="mb-3">
+                            <label class="form-label">Contraseña Correo</label>
+                            <input type="text" class="form-control" name="contrasena_correo" id="edit-contrasena-correo" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Contraseña GPT</label>
+                            <input type="text" class="form-control" name="contrasena_gpt" id="edit-contrasena-gpt" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Código</label>
+                            <input type="text" class="form-control" name="codigo" id="edit-codigo">
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label">Fecha inicio</label>
                             <input type="date" class="form-control" name="fecha_inicio" id="edit-fecha_inicio" required>
+                            <input type="hidden" name="fecha_fin" id="edit-fecha_fin">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Costo</label>
@@ -252,9 +268,48 @@ requireLogin();
             btn.addEventListener('click', function() {
                 document.getElementById('edit-id').value = this.dataset.id;
                 document.getElementById('edit-correo').value = this.dataset.correo;
+                document.getElementById('edit-contrasena-correo').value = this.dataset.contrasenaCorreo;
+                document.getElementById('edit-contrasena-gpt').value = this.dataset.contrasenaGpt;
+                document.getElementById('edit-codigo').value = this.dataset.codigo;
                 document.getElementById('edit-fecha_inicio').value = this.dataset.fecha_inicio;
                 document.getElementById('edit-costo').value = this.dataset.costo;
                 document.getElementById('edit-estado').value = this.dataset.estado;
+                var modal = new bootstrap.Modal(document.getElementById('editarCuentaModal'));
+                modal.show();
+            });
+        });
+
+        // Recalcular fecha fin al cambiar fecha inicio
+        document.getElementById('edit-fecha_inicio').addEventListener('change', function() {
+            if (this.value) {
+                const fechaInicio = new Date(this.value);
+                const fechaFin = new Date(fechaInicio);
+                fechaFin.setDate(fechaFin.getDate() + 30);
+                const fechaFinStr = fechaFin.toISOString().split('T')[0];
+                document.getElementById('edit-fecha_fin').value = fechaFinStr;
+            }
+        });
+
+        // Calcular fecha fin al cargar el modal
+        document.querySelectorAll('.edit-cuenta').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.getElementById('edit-id').value = this.dataset.id;
+                document.getElementById('edit-correo').value = this.dataset.correo;
+                document.getElementById('edit-contrasena-correo').value = this.dataset.contrasenaCorreo;
+                document.getElementById('edit-contrasena-gpt').value = this.dataset.contrasenaGpt;
+                document.getElementById('edit-codigo').value = this.dataset.codigo;
+                document.getElementById('edit-fecha_inicio').value = this.dataset.fecha_inicio;
+                document.getElementById('edit-costo').value = this.dataset.costo;
+                document.getElementById('edit-estado').value = this.dataset.estado;
+                
+                // Calcular fecha fin inicial
+                if (this.dataset.fecha_inicio) {
+                    const fechaInicio = new Date(this.dataset.fecha_inicio);
+                    const fechaFin = new Date(fechaInicio);
+                    fechaFin.setDate(fechaFin.getDate() + 30);
+                    document.getElementById('edit-fecha_fin').value = fechaFin.toISOString().split('T')[0];
+                }
+                
                 var modal = new bootstrap.Modal(document.getElementById('editarCuentaModal'));
                 modal.show();
             });
@@ -370,8 +425,17 @@ requireLogin();
                             <input type="email" class="form-control" name="correo" id="correo" required>
                         </div>
                         <div class="mb-3">
+                            <label for="contrasena_correo" class="form-label">Contraseña Correo</label>
+                            <input type="text" class="form-control" name="contrasena_correo" id="contrasena_correo" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="contrasena_gpt" class="form-label">Contraseña GPT</label>
+                            <input type="text" class="form-control" name="contrasena_gpt" id="contrasena_gpt" required>
+                        </div>
+                        <div class="mb-3">
                             <label for="fecha_inicio" class="form-label">Fecha inicio</label>
-                            <input type="date" class="form-control" name="fecha_inicio" id="fecha_inicio" required>
+                            <input type="date" class="form-control" name="fecha_inicio" id="fecha_inicio" value="<?php echo date('Y-m-d'); ?>" required>
+                            <input type="hidden" name="fecha_fin" id="fecha_fin" value="<?php echo date('Y-m-d', strtotime('+30 days')); ?>">
                         </div>
                         <div class="mb-3">
                             <label for="costo" class="form-label">Costo</label>
@@ -379,7 +443,7 @@ requireLogin();
                         </div>
                         <div class="mb-3">
                             <label for="usuarios" class="form-label">Usuarios</label>
-                            <input type="number" min="1" class="form-control" name="usuarios" id="usuarios" required>
+                            <input type="number" min="0" class="form-control" name="usuarios" id="usuarios" value="0" required>
                         </div>
                         <div class="mb-3">
                             <label for="estado" class="form-label">Estado</label>

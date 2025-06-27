@@ -14,20 +14,31 @@ try {
     $contrasena_gpt = isset($_POST['contrasena_gpt']) ? trim($_POST['contrasena_gpt']) : '';
     $codigo = isset($_POST['codigo']) ? trim($_POST['codigo']) : null;
     $fecha_inicio = isset($_POST['fecha_inicio']) ? trim($_POST['fecha_inicio']) : '';
+    $fecha_fin = isset($_POST['fecha_fin']) ? trim($_POST['fecha_fin']) : '';
     $costo = isset($_POST['costo']) ? floatval($_POST['costo']) : 0;
     $estado = isset($_POST['estado']) ? trim($_POST['estado']) : 'activa';
+    $usuarios = 0; // Siempre inicia con 0 usuarios
     
     // Validar datos
-    if (empty($correo) || empty($contrasena_correo) || empty($contrasena_gpt) || empty($fecha_inicio)) {
-        throw new Exception("Faltan campos obligatorios");
+    if (empty($correo)) {
+        throw new Exception("El correo es obligatorio");
+    }
+    if (empty($contrasena_correo)) {
+        throw new Exception("La contraseña del correo es obligatoria");
+    }
+    if (empty($contrasena_gpt)) {
+        throw new Exception("La contraseña de GPT es obligatoria");
+    }
+    if (empty($fecha_inicio)) {
+        throw new Exception("La fecha de inicio es obligatoria");
     }
     
     // Insertar en base de datos
-    $sql = "INSERT INTO cuentas (correo, contrasena_correo, contrasena_gpt, codigo, fecha_inicio, costo, estado) 
-            VALUES (?, ?, ?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO cuentas (correo, contrasena_correo, contrasena_gpt, codigo, fecha_inicio, fecha_fin, costo, estado, usuarios) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             
     $stmt = mysqli_prepare($conn, $sql);
-    mysqli_stmt_bind_param($stmt, "sssssds", $correo, $contrasena_correo, $contrasena_gpt, $codigo, $fecha_inicio, $costo, $estado);
+    mysqli_stmt_bind_param($stmt, "ssssssdsi", $correo, $contrasena_correo, $contrasena_gpt, $codigo, $fecha_inicio, $fecha_fin, $costo, $estado, $usuarios);
     
     if (mysqli_stmt_execute($stmt)) {
         echo json_encode(['success' => true, 'message' => 'Cuenta guardada correctamente']);

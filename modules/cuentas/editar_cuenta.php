@@ -9,6 +9,7 @@ $contrasena_correo = trim($_POST['contrasena_correo'] ?? '');
 $contrasena_gpt = trim($_POST['contrasena_gpt'] ?? '');
 $codigo = trim($_POST['codigo'] ?? '');
 $fecha_inicio = trim($_POST['fecha_inicio'] ?? '');
+$fecha_fin = trim($_POST['fecha_fin'] ?? '');
 $costo = floatval($_POST['costo'] ?? 0);
 $estado = trim($_POST['estado'] ?? '');
 
@@ -18,9 +19,9 @@ if ($id < 1 || !$correo || !$contrasena_correo || !$contrasena_gpt || !$fecha_in
 }
 
 // Actualizar cuenta
-$sql = "UPDATE cuentas SET correo=?, contrasena_correo=?, contrasena_gpt=?, codigo=?, fecha_inicio=?, costo=?, estado=? WHERE id=?";
+$sql = "UPDATE cuentas SET correo=?, contrasena_correo=?, contrasena_gpt=?, codigo=?, fecha_inicio=?, fecha_fin=?, costo=?, estado=? WHERE id=?";
 $stmt = mysqli_prepare($conn, $sql);
-mysqli_stmt_bind_param($stmt, "sssssdsi", $correo, $contrasena_correo, $contrasena_gpt, $codigo, $fecha_inicio, $costo, $estado, $id);
+mysqli_stmt_bind_param($stmt, "ssssssdsi", $correo, $contrasena_correo, $contrasena_gpt, $codigo, $fecha_inicio, $fecha_fin, $costo, $estado, $id);
 
 if (mysqli_stmt_execute($stmt)) {
     echo json_encode(['success' => true]);
