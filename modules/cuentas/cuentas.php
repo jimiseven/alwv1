@@ -39,6 +39,11 @@ requireLogin();
         .active.bg-primary {
             color: #fff !important;
         }
+        
+        .cuenta-vencida {
+            border: 2px solid #dc3545;
+            border-radius: 4px;
+        }
     </style>
 </head>
 
@@ -59,13 +64,12 @@ requireLogin();
                             <tr>
                                 <th>#</th>
                                 <th>Correo</th>
-                                <th>Contraseña correo</th>
-                                <th>Contraseña GPT</th>
-                                <th>Código</th>
                                 <th>Fecha inicio</th>
                                 <th>Fecha fin</th>
                                 <th>Días</th>
-                                <th>Usuarios</th>
+                                <th>Usuarios Activos</th>
+                                <th>Usuarios Inactivos</th>
+                                <th>Total Usuarios</th>
                                 <th>Gasto</th>
                                 <th>Ganancia</th>
                                 <th>Estado</th>
@@ -75,7 +79,12 @@ requireLogin();
                         </thead>
                         <tbody>
                             <?php
-                            $sql = "SELECT * FROM cuentas ORDER BY id DESC";
+                            $sql = "SELECT c.*, 
+                                   (SELECT COUNT(DISTINCT numero_celular) FROM ventas WHERE cuenta_id = c.id AND fecha_fin >= CURDATE()) as usuarios_activos,
+                                   (SELECT COUNT(DISTINCT numero_celular) FROM ventas WHERE cuenta_id = c.id AND fecha_fin < CURDATE()) as usuarios_inactivos,
+                                   (SELECT SUM(pago) FROM ventas WHERE cuenta_id = c.id) - c.costo as ganancia
+                                   FROM cuentas c
+                                   ORDER BY id DESC";
                             $resultado = mysqli_query($conn, $sql);
                             $total_gasto = 0;
                             if (mysqli_num_rows($resultado) > 0) {
@@ -99,16 +108,17 @@ requireLogin();
                                     $estado_activo = $fila['estado'] === 'activa';
                                     $estado_btn = $estado_activo ? 'btn-success' : 'btn-secondary';
                                     $estado_txt = $estado_activo ? 'Activa' : 'Inactiva';
-                                    echo "<tr>
+                                    $fecha_fin_comparar = $fila['fecha_fin'] ?: date('Y-m-d', strtotime($fila['fecha_inicio'] . ' +30 days'));
+                                    $claseVencida = strtotime($fecha_fin_comparar) < time() ? 'cuenta-vencida' : '';
+                                    echo "<tr class='$claseVencida'>
                                     <td>{$fila['id']}</td>
                                     <td>" . htmlspecialchars($fila['correo']) . "</td>
-                                    <td>" . htmlspecialchars($fila['contrasena_correo']) . "</td>
-                                    <td>" . htmlspecialchars($fila['contrasena_gpt']) . "</td>
-                                    <td>" . htmlspecialchars($fila['codigo']) . "</td>
                                     <td>" . ($fecha_ini ? date('d/m/Y', strtotime($fecha_ini)) : '') . "</td>
                                     <td>$fecha_fin_mostrar</td>
                                     <td>" . intval($dias) . "</td>
-                                    <td>{$fila['usuarios']}</td>
+                                    <td>{$fila['usuarios_activos']}</td>
+                                    <td>{$fila['usuarios_inactivos']}</td>
+                                    <td>" . ($fila['usuarios_activos'] + $fila['usuarios_inactivos']) . "</td>
                                     <td>$" . number_format($fila['costo'], 2) . "</td>
                                     <td>$" . number_format($fila['ganancia'] ?? 0, 2) . "</td>
                                     <td>
@@ -121,9 +131,6 @@ requireLogin();
                                         <button class='btn btn-sm btn-warning edit-cuenta' 
                                             data-id='{$fila['id']}'
                                             data-correo='" . htmlspecialchars($fila['correo'], ENT_QUOTES) . "'
-                                            data-contrasena_correo='" . htmlspecialchars($fila['contrasena_correo'], ENT_QUOTES) . "'
-                                            data-contrasena_gpt='" . htmlspecialchars($fila['contrasena_gpt'], ENT_QUOTES) . "'
-                                            data-codigo='" . htmlspecialchars($fila['codigo'], ENT_QUOTES) . "'
                                             data-fecha_inicio='{$fila['fecha_inicio']}'
                                             data-costo='{$fila['costo']}'
                                             data-estado='{$fila['estado']}'
@@ -139,7 +146,7 @@ requireLogin();
                                   </tr>";
                                 }
                             } else {
-                                echo "<tr><td colspan='14' class='text-center'>No hay cuentas registradas</td></tr>";
+                                echo "<tr><td colspan='12' class='text-center'>No hay cuentas registradas</td></tr>";
                             }
                             ?>
                         </tbody>
@@ -189,18 +196,6 @@ requireLogin();
                         <div class="mb-3">
                             <label class="form-label">Correo</label>
                             <input type="email" class="form-control" name="correo" id="edit-correo" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Contraseña correo</label>
-                            <input type="text" class="form-control" name="contrasena_correo" id="edit-contrasena_correo" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Contraseña GPT</label>
-                            <input type="text" class="form-control" name="contrasena_gpt" id="edit-contrasena_gpt" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Código</label>
-                            <input type="text" class="form-control" name="codigo" id="edit-codigo">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Fecha inicio</label>
@@ -257,9 +252,6 @@ requireLogin();
             btn.addEventListener('click', function() {
                 document.getElementById('edit-id').value = this.dataset.id;
                 document.getElementById('edit-correo').value = this.dataset.correo;
-                document.getElementById('edit-contrasena_correo').value = this.dataset.contrasena_correo;
-                document.getElementById('edit-contrasena_gpt').value = this.dataset.contrasena_gpt;
-                document.getElementById('edit-codigo').value = this.dataset.codigo;
                 document.getElementById('edit-fecha_inicio').value = this.dataset.fecha_inicio;
                 document.getElementById('edit-costo').value = this.dataset.costo;
                 document.getElementById('edit-estado').value = this.dataset.estado;
@@ -376,18 +368,6 @@ requireLogin();
                         <div class="mb-3">
                             <label for="correo" class="form-label">Correo</label>
                             <input type="email" class="form-control" name="correo" id="correo" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="contrasena_correo" class="form-label">Contraseña correo</label>
-                            <input type="text" class="form-control" name="contrasena_correo" id="contrasena_correo" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="contrasena_gpt" class="form-label">Contraseña GPT</label>
-                            <input type="text" class="form-control" name="contrasena_gpt" id="contrasena_gpt" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="codigo" class="form-label">Código</label>
-                            <input type="text" class="form-control" name="codigo" id="codigo">
                         </div>
                         <div class="mb-3">
                             <label for="fecha_inicio" class="form-label">Fecha inicio</label>
