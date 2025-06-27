@@ -305,6 +305,27 @@ requireLogin();
               </button>
               <span class="input-group-text"><i class="bi bi-search"></i></span>
             </div>
+            <div class="input-group" style="width: 350px;">
+              <select class="form-select" id="filtroCuenta">
+                <option value="">Todas las cuentas</option>
+              <?php
+              $sqlCuentas = "SELECT id, correo, estado FROM cuentas ORDER BY estado DESC, correo";
+              $resCuentas = mysqli_query($conn, $sqlCuentas);
+              while ($cuenta = mysqli_fetch_assoc($resCuentas)) {
+                $color = $cuenta['estado'] === 'activa' ? 'text-success' : 'text-danger';
+                echo "<option value='{$cuenta['id']}' class='{$color}'>" . 
+                     htmlspecialchars($cuenta['correo']) . 
+                     ($cuenta['estado'] === 'activa' ? '' : ' (Inactiva)') . 
+                     "</option>";
+              }
+              ?>
+              </select>
+              <?php if(isset($_GET['cuenta_id'])) { ?>
+                <button class="btn btn-outline-secondary" id="limpiarFiltros" type="button" title="Limpiar filtros">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              <?php } ?>
+            </div>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#nuevaVentaModal">
               <i class="bi bi-plus-circle"></i> Nueva venta
             </button>
@@ -341,13 +362,27 @@ requireLogin();
                   <th class="text-center">Cuenta</th>
                   <th class="text-center">Fecha inicio</th>
                   <th class="text-center">Fecha fin</th>
-                  <th class="text-center">Días restantes</th>
+                  <th class="text-center">
+                    <div class="d-flex align-items-center justify-content-center gap-1">
+                      Días restantes
+                      <button type="button" class="btn btn-sm btn-link p-0 border-0" id="ordenarDias">
+                        <i class="bi bi-arrow-down-up"></i>
+                      </button>
+                    </div>
+                  </th>
                   <th class="text-center">Opciones</th>
                 </tr>
               </thead>
               <tbody>
                 <?php
-                $sql = "SELECT 
+            $filtroCuenta = "";
+            if (isset($_GET['cuenta_id']) && $_GET['cuenta_id'] !== '') {
+                $filtroCuenta = "AND v.cuenta_id = " . intval($_GET['cuenta_id']);
+            }
+
+            $ordenDias = isset($_GET['orden_dias']) && $_GET['orden_dias'] === 'asc' ? 'ASC' : 'DESC';
+            
+            $sql = "SELECT 
                 v.id, 
                 v.numero_celular, 
                 v.fecha_inicio, 
@@ -356,10 +391,12 @@ requireLogin();
                 v.pago, 
                 v.cuenta_id,
                 c.correo AS cuenta_correo,
-                c.contrasena_gpt
+                c.contrasena_gpt,
+                DATEDIFF(v.fecha_fin, CURDATE()) AS dias_restantes
             FROM ventas v
             INNER JOIN cuentas c ON v.cuenta_id = c.id
-            ORDER BY v.fecha_inicio DESC";
+            WHERE 1=1 $filtroCuenta
+            ORDER BY dias_restantes $ordenDias, v.fecha_inicio DESC";
 
                 $resultado = mysqli_query($conn, $sql);
 
@@ -561,6 +598,54 @@ requireLogin();
         <script src="<?php echo BASE_URL; ?>assets/js/bootstrap.bundle.min.js"></script>
         <script>
           document.addEventListener('DOMContentLoaded', function() {
+            // Ordenar por días
+            const btnOrdenarDias = document.getElementById('ordenarDias');
+            if (btnOrdenarDias) {
+              btnOrdenarDias.addEventListener('click', function() {
+                const url = new URL(window.location.href);
+                const currentOrder = url.searchParams.get('orden_dias');
+                const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+                url.searchParams.set('orden_dias', newOrder);
+                
+                // Cambiar ícono según el orden
+                const icon = this.querySelector('i');
+                if (icon) {
+                  icon.className = newOrder === 'asc' ? 'bi bi-arrow-up' : 'bi bi-arrow-down';
+                }
+                
+                window.location.href = url.toString();
+              });
+              
+              // Establecer ícono inicial
+              const url = new URL(window.location.href);
+              const currentOrder = url.searchParams.get('orden_dias');
+              const icon = btnOrdenarDias.querySelector('i');
+              if (icon) {
+                icon.className = currentOrder === 'asc' ? 'bi bi-arrow-up' : 'bi bi-arrow-down';
+              }
+            }
+
+            // Limpiar filtros
+            document.getElementById('limpiarFiltros')?.addEventListener('click', function() {
+              const url = new URL(window.location.href);
+              url.searchParams.delete('cuenta_id');
+              window.location.href = url.toString();
+            });
+
+            // Filtro por cuenta
+            document.getElementById('filtroCuenta').addEventListener('change', function() {
+              const cuentaId = this.value;
+              const url = new URL(window.location.href);
+              
+              if (cuentaId) {
+                url.searchParams.set('cuenta_id', cuentaId);
+              } else {
+                url.searchParams.delete('cuenta_id');
+              }
+              
+              window.location.href = url.toString();
+            });
+
             // Sidebar móvil
             const sidebar = document.querySelector('.sidebar');
             const sidebarBackdrop = document.getElementById('sidebarMobileBackdrop');
@@ -733,10 +818,17 @@ Ingresa ahora por favor y te paso los códigos de activación`;
                     <select class="form-select" name="cuenta_id" id="cuenta_id" required>
                       <option value="">Selecciona una cuenta...</option>
                       <?php
-                      $sqlCuentas = "SELECT id, correo FROM cuentas WHERE estado='activa' ORDER BY correo";
+                      $sqlCuentas = "SELECT c.id, c.correo, COUNT(v.id) as ventas_count 
+                                   FROM cuentas c 
+                                   LEFT JOIN ventas v ON c.id = v.cuenta_id 
+                                   WHERE c.estado='activa' 
+                                   GROUP BY c.id 
+                                   ORDER BY c.correo";
                       $resCuentas = mysqli_query($conn, $sqlCuentas);
                       while ($cuenta = mysqli_fetch_assoc($resCuentas)) {
-                        echo "<option value='{$cuenta['id']}'>" . htmlspecialchars($cuenta['correo']) . "</option>";
+                        echo "<option value='{$cuenta['id']}'>" . 
+                             htmlspecialchars($cuenta['correo']) . 
+                             " (" . $cuenta['ventas_count'] . " ventas)</option>";
                       }
                       ?>
                     </select>
