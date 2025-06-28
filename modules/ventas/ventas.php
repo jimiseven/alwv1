@@ -839,10 +839,14 @@ Ingresa ahora por favor y te paso los códigos de activación`;
                       <input type="date" class="form-control" name="fecha_inicio" id="fecha_inicio" required>
                     </div>
                     <div class="col-6 mb-3">
-                      <label for="fecha_fin" class="form-label">Fecha fin</label>
-                      <input type="date" class="form-control" name="fecha_fin" id="fecha_fin" required>
+                      <label for="duracion" class="form-label">Duración</label>
+                      <select class="form-select" id="duracion" required>
+                        <option value="30">30 días</option>
+                        <option value="90">90 días</option>
+                      </select>
                     </div>
                   </div>
+                  <input type="hidden" name="fecha_fin" id="fecha_fin">
                   <div class="mb-3">
                     <label for="pago" class="form-label">Pago</label>
                     <input type="number" step="0.01" class="form-control" name="pago" id="pago" required>
@@ -859,6 +863,29 @@ Ingresa ahora por favor y te paso los códigos de activación`;
         </div>
 
         <script>
+          // Calcular fecha fin automáticamente
+          document.addEventListener('DOMContentLoaded', function() {
+            const fechaInicio = document.getElementById('fecha_inicio');
+            const duracion = document.getElementById('duracion');
+            const fechaFin = document.getElementById('fecha_fin');
+            
+            function calcularFechaFin() {
+              if (fechaInicio.value) {
+                const fecha = new Date(fechaInicio.value);
+                fecha.setDate(fecha.getDate() + parseInt(duracion.value));
+                fechaFin.value = fecha.toISOString().split('T')[0];
+              }
+            }
+            
+            fechaInicio.addEventListener('change', calcularFechaFin);
+            duracion.addEventListener('change', calcularFechaFin);
+            
+            // Calcular fecha inicial si hay valores
+            if (fechaInicio.value) {
+              calcularFechaFin();
+            }
+          });
+
           document.getElementById('formNuevaVenta').addEventListener('submit', function(e) {
             e.preventDefault();
             const form = this;
