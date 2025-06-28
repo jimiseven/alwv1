@@ -170,79 +170,136 @@ requireLogin();
       }
     }
 
-    /* vista movil */
+    /* vista movil - diseño mejorado */
     .venta-card-custom {
-      background: #f4f6fb;
-      border: 1.5px solid #e0e3e8;
-      border-radius: 12px;
-      padding: 16px 12px 12px 12px;
-      margin-bottom: 20px;
+      background: #ffffff;
+      border: none;
+      border-radius: 16px;
+      padding: 18px 16px;
+      margin-bottom: 16px;
       position: relative;
-      min-width: 220px;
-      box-shadow: 0 2px 10px 0 rgba(60, 60, 60, .05);
-      transition: box-shadow 0.2s;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      overflow: hidden;
     }
 
     .venta-card-custom:hover {
-      box-shadow: 0 4px 16px 0 rgba(60, 60, 60, .12);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .venta-card-custom::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(to bottom, #4e73ff, #224dff);
     }
 
     .venta-card-custom .edit-btn {
       position: absolute;
-      top: 10px;
-      right: 10px;
+      top: 12px;
+      right: 12px;
       z-index: 2;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s ease;
+    }
+
+    .venta-card-custom .edit-btn:hover {
+      transform: scale(1.1);
     }
 
     .venta-card-custom .venta-datos {
-      background: #fff;
-      border-radius: 8px;
-      padding: 14px 14px 10px 14px;
-      margin: 18px 0 18px 0;
+      background: #f8faff;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 16px 0;
       display: block;
-      box-shadow: 0 1px 4px 0 rgba(120, 120, 120, .07);
-      font-size: 1rem;
+      border: 1px solid #e0e8ff;
     }
 
     .venta-card-custom .venta-datos div {
-      margin-bottom: 6px;
-      color: #222;
+      margin-bottom: 8px;
+      color: #2d3748;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .venta-card-custom .venta-datos i {
+      color: #4e73ff;
+      font-size: 1.1rem;
+      min-width: 20px;
     }
 
     .venta-card-custom .venta-btns {
       display: flex;
       justify-content: space-between;
       gap: 12px;
-      margin-top: 10px;
+      margin-top: 12px;
     }
 
     .venta-card-custom .venta-btns button {
       width: 50%;
-      font-weight: 500;
-      border-radius: 6px;
-      padding: 8px 0;
-      font-size: 1rem;
-      transition: background 0.2s, color 0.2s;
+      font-weight: 600;
+      border-radius: 8px;
+      padding: 10px 0;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+      border-width: 2px;
     }
 
     .venta-card-custom .venta-btns .btn-outline-dark {
-      border: 1.5px solid #222;
-      color: #222;
-      background: #fff;
+      border-color: #4e73ff;
+      color: #4e73ff;
+      background: transparent;
     }
 
     .venta-card-custom .venta-btns .btn-outline-dark:hover {
-      background: #222;
-      color: #fff;
+      background: #4e73ff;
+      color: white;
     }
 
     .venta-card-custom .text-start {
-      font-size: 1.15rem;
-      font-weight: 600;
-      color: #1a1a1a;
-      letter-spacing: 0.5px;
-      margin-bottom: 0;
-      padding-left: 2px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #1a237e;
+      margin-bottom: 4px;
+      padding-left: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .venta-card-custom .text-start::before {
+      content: '📱';
+      font-size: 1.1rem;
+    }
+
+    @media (max-width: 400px) {
+      .venta-card-custom {
+        padding: 14px 12px;
+        border-radius: 14px;
+      }
+      
+      .venta-card-custom .venta-datos {
+        padding: 12px;
+        margin: 12px 0;
+      }
+      
+      .venta-card-custom .venta-btns button {
+        padding: 8px 0;
+        font-size: 0.9rem;
+      }
     }
 
     @media (max-width: 400px) {
