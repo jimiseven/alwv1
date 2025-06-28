@@ -360,6 +360,7 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                                 <th>USERS INACTIVOS</th>
                                 <th>TOTAL USERS</th>
                                 <th>GASTO</th>
+                                <th>REC</th>
                                 <th>GAN</th>
                             </tr>
                         </thead>
@@ -370,6 +371,7 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                                    (SELECT COUNT(DISTINCT numero_celular) FROM ventas WHERE cuenta_id = c.id AND fecha_fin < CURDATE()) as usuarios_inactivos,
                                    (SELECT COUNT(DISTINCT numero_celular) FROM ventas WHERE cuenta_id = c.id) as usuarios_total,
                                    c.costo,
+                                   (SELECT SUM(pago) FROM ventas WHERE cuenta_id = c.id) as recaudado,
                                    (SELECT SUM(pago) FROM ventas WHERE cuenta_id = c.id) - c.costo as ganancia_neta
                                    FROM cuentas c
                                    ORDER BY c.id DESC";
@@ -384,11 +386,12 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                                             <td>{$fila['usuarios_inactivos']}</td>
                                             <td>{$fila['usuarios_total']}</td>
                                             <td>$" . number_format($fila['costo'], 2) . "</td>
+                                            <td>$" . number_format($fila['recaudado'] ?? 0, 2) . "</td>
                                             <td>$" . number_format($fila['ganancia_neta'] ?? 0, 2) . "</td>
                                           </tr>";
                                 }
                             } else {
-                                echo "<tr><td colspan='7' class='text-center'>No hay cuentas registradas</td></tr>";
+                                echo "<tr><td colspan='8' class='text-center'>No hay cuentas registradas</td></tr>";
                             }
                             ?>
                         </tbody>
