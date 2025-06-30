@@ -53,21 +53,86 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                 position: fixed;
                 top: 0;
                 bottom: 0;
-                left: -100%;
-                width: 80%;
+                left: -260px;
+                width: 260px;
                 transition: all 0.3s ease;
-                z-index: 1000;
-                background: white;
-                box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+                z-index: 1050;
+                background: #f8f9fa;
+                border-right: 1px solid #dee2e6;
             }
 
-            .sidebar.active {
+            .sidebar.show {
+                left: 0;
+                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            }
+
+            .sidebar-mobile-backdrop {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 1040;
+                backdrop-filter: blur(2px);
+            }
+
+            .sidebar-mobile-backdrop.show {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 20px 15px 15px 15px;
+                width: 100%;
+                min-height: calc(100vh - 70px);
+                position: relative;
+                background: white;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.show ~ .main-content {
+                transform: translateX(260px);
+            }
+
+            .mobile-navbar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1060;
+                background: white;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            }
+        }
+
+        @media (min-width: 992px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                bottom: 0;
+                left: -260px;
+                width: 260px;
+                background: #f8f9fa;
+                border-right: 1px solid #dee2e6;
+                z-index: 1050;
+                overflow-y: auto;
+                transition: all 0.3s ease;
+            }
+
+            .sidebar.show {
                 left: 0;
             }
 
-            .content-padding-top {
-                padding-top: 20px;
+            .main-content {
+                margin-left: 0;
+                padding: 30px;
+                min-height: 100vh;
+                width: 100%;
+                background: white;
             }
+        }
 
             /* Métricas en móvil */
             .metric-card {
@@ -103,7 +168,6 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                 justify-content: center;
                 box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             }
-        }
 
         .sidebar-backdrop {
             position: fixed;
@@ -117,9 +181,20 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
         }
 
         .main-content {
-            margin-left: 0 !important;
+            margin-left: 0;
+            padding: 20px;
+            background: white;
+            min-height: 100vh;
+            transition: all 0.3s ease;
         }
+
+        @media (min-width: 992px) {
+            .main-content {
+                margin-left: 260px;
+                padding: 30px;
+            }
         }
+        
 
         @media (min-width: 992px) {
             .sidebar {
@@ -309,12 +384,18 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
 
 <body>
     <div class="container-fluid p-0">
-        <button class="mobile-menu-btn d-lg-none" id="mobileMenuBtn">
-            <i class="bi bi-list"></i>
-        </button>
+        <!-- Navbar móvil -->
+        <div class="mobile-navbar mobile-only">
+            <button class="btn btn-link text-dark p-0" id="btnSidebarMobile" type="button">
+                <i class="bi bi-list"></i>
+            </button>
+            <h2 class="mb-0"><i class="bi bi-speedometer2"></i> Dashboard</h2>
+        </div>
+        <div class="sidebar-mobile-backdrop" id="sidebarMobileBackdrop"></div>
+
         <div class="d-flex">
             <?php include 'includes/sidebar.php'; ?>
-            <main class="flex-grow-1 p-4" style="overflow-y: auto; height: 100vh;">
+            <main class="main-content p-4">
                 <!-- Métricas -->
                 <div class="row g-3 mb-4">
                     <div class="col-12 col-md-3">
@@ -345,7 +426,7 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
 
                 <!-- Tabla Cuentas -->
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5>Cuentas registradas</h5>
+                    <h5><a href="modules/cuentas/cuentas.php" class="text-decoration-none">Cuentas registradas</a></h5>
                     <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#nuevaCuentaModal">
                         <i class="bi bi-plus-circle"></i> Nueva cuenta
                     </button>
@@ -400,7 +481,7 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
 
                 <!-- Tabla Ventas -->
                 <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
-                    <h5>Ventas activas</h5>
+                    <h5><a href="modules/ventas/ventas.php" class="text-decoration-none">Ventas activas</a></h5>
                     <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#nuevaVentaModal">
                         <i class="bi bi-cart-plus"></i> Nueva venta
                     </button>
@@ -640,10 +721,30 @@ $datos_usuarios = mysqli_fetch_assoc($resultado_usuarios);
                 setTimeout(() => container.remove(), 6000);
             }
         });
-        // Menú móvil
-        document.getElementById('mobileMenuBtn').addEventListener('click', function () {
-            document.querySelector('.sidebar').classList.toggle('active');
-        });
+            // Sidebar para todos los dispositivos
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarBackdrop = document.getElementById('sidebarMobileBackdrop');
+            const btnSidebarMobile = document.getElementById('btnSidebarMobile');
+
+            if (btnSidebarMobile && sidebar && sidebarBackdrop) {
+                btnSidebarMobile.addEventListener('click', function() {
+                    sidebar.classList.toggle('show');
+                    sidebarBackdrop.classList.toggle('show');
+                    document.body.style.overflow = sidebar.classList.contains('show') ? 'hidden' : '';
+                });
+
+                sidebarBackdrop.addEventListener('click', function() {
+                    sidebar.classList.remove('show');
+                    sidebarBackdrop.classList.remove('show');
+                    document.body.style.overflow = '';
+                });
+            }
+
+            // Asegurar que el contenido ocupe todo el ancho
+            document.querySelectorAll('.metric-card, .table-responsive').forEach(el => {
+                el.style.maxWidth = '100%';
+                el.style.width = '100%';
+            });
     </script>
 </body>
 

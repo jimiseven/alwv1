@@ -22,10 +22,71 @@ requireLogin();
             margin-bottom: 1.5rem;
         }
 
+    /* Sidebar responsive */
+    @media (max-width: 767px) {
         .sidebar {
-            min-height: 100vh;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            left: -260px;
+            bottom: 0;
+            width: 260px;
+            z-index: 1050;
+            transition: left 0.3s;
         }
+
+        .sidebar.show {
+            left: 0 !important;
+        }
+
+        .sidebar-mobile-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 1040;
+        }
+
+        .sidebar-mobile-backdrop.show {
+            display: block;
+        }
+
+        .mobile-navbar {
+            display: flex;
+            align-items: center;
+            height: 56px;
+            background: #fff;
+            border-bottom: 1px solid #eee;
+            padding: 0 1rem;
+            margin-bottom: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 1060;
+        }
+
+        .mobile-navbar .btn {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+
+        .mobile-navbar h2 {
+            font-size: 1.2rem;
+            margin: 0;
+        }
+    }
+
+    @media (min-width: 768px) {
+        .mobile-only {
+            display: none !important;
+        }
+    }
+
+    .sidebar {
+        min-height: 100vh;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    }
 
         .nav-link:hover:not(.active) {
             background-color: rgba(255, 255, 255, 0.1) !important;
@@ -49,6 +110,15 @@ requireLogin();
 
 <body>
     <div class="container-fluid">
+        <!-- Navbar móvil -->
+        <div class="mobile-navbar mobile-only">
+            <button class="btn btn-link text-dark p-0" id="btnSidebarMobile" type="button">
+                <i class="bi bi-list"></i>
+            </button>
+            <h2 class="mb-0"><i class="bi bi-person"></i> Cuentas</h2>
+        </div>
+        <div class="sidebar-mobile-backdrop" id="sidebarMobileBackdrop"></div>
+
         <div class="row">
             <?php include __DIR__ . '/../../includes/sidebar.php'; ?>
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 pt-3">
