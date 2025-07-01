@@ -899,6 +899,7 @@ Ingresa ahora por favor y te paso los códigos de activación`;
                       <label for="duracion" class="form-label">Duración</label>
                       <select class="form-select" id="duracion" required>
                         <option value="30">30 días</option>
+                        <option value="60">60 días</option>
                         <option value="90">90 días</option>
                       </select>
                     </div>

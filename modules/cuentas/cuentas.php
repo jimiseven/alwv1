@@ -134,10 +134,25 @@ requireLogin();
                             <tr>
                                 <th>#</th>
                                 <th>Correo</th>
-                                <th>Fecha inicio</th>
+                                <th>
+                                    Fecha inicio 
+                                    <button class="btn btn-sm btn-link p-0 ms-1 sort-btn" data-column="fecha_inicio">
+                                        <i class="bi bi-arrow-down-up"></i>
+                                    </button>
+                                </th>
                                 <th>Fecha fin</th>
-                                <th>Días</th>
-                                <th>Usuarios Activos</th>
+                                <th>
+                                    Días
+                                    <button class="btn btn-sm btn-link p-0 ms-1 sort-btn" data-column="dias">
+                                        <i class="bi bi-arrow-down-up"></i>
+                                    </button>
+                                </th>
+                                <th>
+                                    Usuarios Activos
+                                    <button class="btn btn-sm btn-link p-0 ms-1 sort-btn" data-column="usuarios_activos">
+                                        <i class="bi bi-arrow-down-up"></i>
+                                    </button>
+                                </th>
                                 <th>Usuarios Inactivos</th>
                                 <th>Total Usuarios</th>
                                 <th>Gasto</th>
@@ -149,12 +164,27 @@ requireLogin();
                         </thead>
                         <tbody>
                             <?php
+                            $column = $_GET['column'] ?? 'id';
+                            $order = $_GET['order'] ?? 'desc';
+                            
+                            // Mapear columnas a campos de la base de datos
+                            $fieldMap = [
+                                'fecha_inicio' => 'fecha_inicio',
+                                'dias' => 'fecha_fin', // Ordenamos por fecha_fin para los días
+                                'usuarios_activos' => 'usuarios_activos',
+                                'id' => 'id'
+                            ];
+                            
+                            $field = $fieldMap[$column] ?? 'id';
+                            $orderBy = "$field $order";
+                            
                             $sql = "SELECT c.*, 
                                    (SELECT COUNT(DISTINCT numero_celular) FROM ventas WHERE cuenta_id = c.id AND fecha_fin >= CURDATE()) as usuarios_activos,
                                    (SELECT COUNT(DISTINCT numero_celular) FROM ventas WHERE cuenta_id = c.id AND fecha_fin < CURDATE()) as usuarios_inactivos,
+                                   (SELECT COUNT(*) FROM ventas WHERE cuenta_id = c.id) as total_ventas,
                                    (SELECT SUM(pago) FROM ventas WHERE cuenta_id = c.id) - c.costo as ganancia
                                    FROM cuentas c
-                                   ORDER BY id DESC";
+                                   ORDER BY $orderBy";
                             $resultado = mysqli_query($conn, $sql);
                             $total_gasto = 0;
                             if (mysqli_num_rows($resultado) > 0) {
@@ -169,10 +199,11 @@ requireLogin();
                                     } else {
                                         $fecha_fin_mostrar = '';
                                     }
-                                    $dias = $fila['dias'] ?? '';
-                                    if (!$dias && $fecha_ini && ($fecha_fin || isset($fecha_fin_calc))) {
+                                    $dias = '';
+                                    if ($fecha_ini && ($fecha_fin || isset($fecha_fin_calc))) {
                                         $fin = $fecha_fin ?: $fecha_fin_calc;
-                                        $dias = (strtotime($fin) - strtotime($fecha_ini)) / (60 * 60 * 24);
+                                        $dias = (strtotime($fin) - time()) / (60 * 60 * 24);
+                                        $dias = floor($dias); // Redondear hacia abajo
                                     }
                                     $total_gasto += floatval($fila['costo']);
                                     $estado_activo = $fila['estado'] === 'activa';
@@ -185,10 +216,10 @@ requireLogin();
                                     <td>" . htmlspecialchars($fila['correo']) . "</td>
                                     <td>" . ($fecha_ini ? date('d/m/Y', strtotime($fecha_ini)) : '') . "</td>
                                     <td>$fecha_fin_mostrar</td>
-                                    <td>" . intval($dias) . "</td>
+                                    <td>" . ($dias !== '' ? intval($dias) : '') . "</td>
                                     <td>{$fila['usuarios_activos']}</td>
                                     <td>{$fila['usuarios_inactivos']}</td>
-                                    <td>" . ($fila['usuarios_activos'] + $fila['usuarios_inactivos']) . "</td>
+                                    <td>{$fila['total_ventas']}</td>
                                     <td>$" . number_format($fila['costo'], 2) . "</td>
                                     <td>$" . number_format($fila['ganancia'] ?? 0, 2) . "</td>
                                     <td>
@@ -296,8 +327,6 @@ requireLogin();
                             <select class="form-select" name="estado" id="edit-estado">
                                 <option value="activa">Activa</option>
                                 <option value="inactiva">Inactiva</option>
-                                <option value="suspendida">Suspendida</option>
-                                <option value="baneada">Baneada</option>
                             </select>
                         </div>
                     </div>
@@ -312,6 +341,38 @@ requireLogin();
 
     <script src="<?php echo BASE_URL; ?>assets/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Manejar ordenamiento por columnas
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const column = this.dataset.column;
+                const url = new URL(window.location.href);
+                const currentOrder = url.searchParams.get('order');
+                const currentColumn = url.searchParams.get('column');
+                
+                // Alternar entre asc y desc si es la misma columna
+                if (currentColumn === column) {
+                    const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+                    url.searchParams.set('order', newOrder);
+                } else {
+                    // Nueva columna, orden ascendente por defecto
+                    url.searchParams.set('column', column);
+                    url.searchParams.set('order', 'asc');
+                }
+                
+                window.location.href = url.toString();
+            });
+        });
+
+        // Resaltar columna ordenada actual
+        const currentColumn = '<?php echo $_GET["column"] ?? ""; ?>';
+        const currentOrder = '<?php echo $_GET["order"] ?? ""; ?>';
+        if (currentColumn) {
+            const btn = document.querySelector(`.sort-btn[data-column="${currentColumn}"] i`);
+            if (btn) {
+                btn.className = currentOrder === 'asc' ? 'bi bi-arrow-up' : 'bi bi-arrow-down';
+            }
+        }
+
         // Botón de activar/desactivar estado
         document.querySelectorAll('.toggle-estado').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -559,8 +620,6 @@ requireLogin();
                             <select class="form-select" name="estado" id="estado" required>
                                 <option value="activa" selected>Activa</option>
                                 <option value="inactiva">Inactiva</option>
-                                <option value="suspendida">Suspendida</option>
-                                <option value="baneada">Baneada</option>
                             </select>
                         </div>
                     </div>
