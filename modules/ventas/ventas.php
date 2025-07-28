@@ -170,7 +170,7 @@ requireLogin();
       }
     }
 
-    /* vista movil - diseño mejorado */
+    /* vista movil - diseno mejorado */
     .venta-card-custom {
       background: #ffffff;
       border: none;
@@ -309,7 +309,7 @@ requireLogin();
 
       .venta-card-custom .venta-datos {
         background: #f4f6fb;
-        /* Cambia aquí el color de fondo */
+        /* Cambia aqui el color de fondo */
         border-radius: 8px;
         padding: 14px 14px 10px 14px;
         margin: 18px 0 18px 0;
@@ -327,7 +327,7 @@ requireLogin();
 <body>
   <div class="container-fluid">
     <div class="row">
-      <!-- Botón hamburguesa y backdrop solo en móvil -->
+      <!-- Boton hamburguesa y backdrop solo en movil -->
       <div class="mobile-navbar mobile-only">
         <button class="btn btn-link text-dark p-0" id="btnSidebarMobile" type="button">
           <i class="bi bi-list"></i>
@@ -337,11 +337,11 @@ requireLogin();
       <div class="sidebar-mobile-backdrop" id="sidebarMobileBackdrop"></div>
       <?php include __DIR__ . '/../../includes/sidebar.php'; ?>
       <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 pt-3">
-        <!-- Búsqueda y botón en móvil -->
+        <!-- Busqueda y boton en movil -->
         <div class="mobile-only mb-3">
           <div class="input-group mb-3">
-            <input type="text" id="mobileSearch" class="form-control" placeholder="Buscar por número...">
-            <button type="button" class="btn btn-outline-secondary" id="clearMobileSearchInput" title="Borrar búsqueda">
+            <input type="text" id="mobileSearch" class="form-control" placeholder="Buscar por numero...">
+            <button type="button" class="btn btn-outline-secondary" id="clearMobileSearchInput" title="Borrar busqueda">
               <i class="bi bi-x-lg"></i>
             </button>
             <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -351,13 +351,13 @@ requireLogin();
           </button>
         </div>
 
-        <!-- Desktop: barra de búsqueda y botón -->
+        <!-- Desktop: barra de busqueda y boton -->
         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 desktop-only">
           <h2><i class="bi bi-cart"></i> Listado de Ventas</h2>
           <div class="d-flex gap-2">
             <div class="input-group">
-              <input type="text" id="searchInput" class="form-control" placeholder="Buscar por número...">
-              <button type="button" class="btn btn-outline-secondary" id="clearSearchInput" title="Borrar búsqueda">
+              <input type="text" id="searchInput" class="form-control" placeholder="Buscar por numero...">
+              <button type="button" class="btn btn-outline-secondary" id="clearSearchInput" title="Borrar busqueda">
                 <i class="bi bi-x-lg"></i>
               </button>
               <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -415,13 +415,13 @@ requireLogin();
                 <tr>
                   <th class="text-center">TC</th>
                   <th class="text-center">Pago</th>
-                  <th class="text-center">Número celular</th>
+                  <th class="text-center">Numero celular</th>
                   <th class="text-center">Cuenta</th>
                   <th class="text-center">Fecha inicio</th>
                   <th class="text-center">Fecha fin</th>
                   <th class="text-center">
                     <div class="d-flex align-items-center justify-content-center gap-1">
-                      Días restantes
+                      Dias restantes
                       <button type="button" class="btn btn-sm btn-link p-0 border-0" id="ordenarDias">
                         <i class="bi bi-arrow-down-up"></i>
                       </button>
@@ -465,7 +465,7 @@ requireLogin();
                 $fechaFin = new DateTime($fila['fecha_fin']);
                 
                 if (!$fechaInicio || !$fechaFin) {
-                  throw new Exception('Fecha inválida');
+                  throw new Exception('Fecha invalida');
                 }
               } catch (Exception $e) {
                 error_log("Error al parsear fechas para venta ID {$fila['id']}: " . $e->getMessage());
@@ -480,7 +480,7 @@ requireLogin();
                     $mesFin = $meses[(int)$fechaFin->format('n')];
                     $anoFin = $fechaFin->format('Y');
 
-                    // Cálculo de días
+                    // Calculo de dias
                     $diasContratados = $fechaFin->diff($fechaInicio)->days;
                     $hoy = new DateTime();
                     $diasRestantes = (int)$hoy->diff($fechaFin)->format('%r%a'); // Convertir a entero
@@ -537,7 +537,7 @@ requireLogin();
           </div>
         </div>
 
-        <!-- Vista móvil -->
+        <!-- Vista movil -->
         <div class="mobile-only">
           <?php
           mysqli_data_seek($resultado, 0);
@@ -555,7 +555,7 @@ requireLogin();
               $mesFin = $meses[(int)$fechaFin->format('n')];
               $anoFin = $fechaFin->format('Y');
 
-              // Cálculos
+              // Calculos
               $diasContratados = $fechaFin->diff($fechaInicio)->days;
               $hoy = new DateTime();
               $diasRestantes = (int)$hoy->diff($fechaFin)->format('%r%a');
@@ -609,7 +609,7 @@ requireLogin();
           ?>
         </div>
 
-        <!-- Modal Editar Venta - Nueva Versión -->
+        <!-- Modal Editar Venta - Nueva Version -->
         <div class="modal fade" id="editarVentaModal" tabindex="-1" aria-labelledby="editarVentaModalLabel" aria-hidden="true">
           <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -624,11 +624,11 @@ requireLogin();
                   <input type="hidden" name="id" id="edit-id">
                   
                   <div class="row g-3">
-                    <!-- Número Celular -->
+                    <!-- Numero Celular -->
                     <div class="col-md-6">
-                      <label for="edit-numero_celular" class="form-label">Número Celular</label>
+                      <label for="edit-numero_celular" class="form-label">Numero Celular</label>
                       <input type="text" class="form-control" name="numero_celular" id="edit-numero_celular" 
-                             pattern="[0-9]{7,20}" title="Solo números, mínimo 7 dígitos" required>
+                             pattern="[0-9]{7,20}" title="Solo numeros, minimo 7 digitos" required>
                     </div>
 
                     <!-- Cuenta -->
@@ -650,12 +650,12 @@ requireLogin();
                     <div class="col-md-6">
                       <label for="edit-fecha_inicio" class="form-label">Fecha Inicio</label>
                       <input type="date" class="form-control" name="fecha_inicio" id="edit-fecha_inicio" required>
-                      <div class="invalid-feedback">Fecha inválida</div>
+                      <div class="invalid-feedback">Fecha invalida</div>
                     </div>
                     <div class="col-md-6">
                       <label for="edit-fecha_fin" class="form-label">Fecha Fin</label>
                       <input type="date" class="form-control" name="fecha_fin" id="edit-fecha_fin" required>
-                      <div class="invalid-feedback">Fecha inválida</div>
+                      <div class="invalid-feedback">Fecha invalida</div>
                     </div>
 
                     <!-- Pago -->
@@ -687,7 +687,7 @@ requireLogin();
 
         <script>
         document.addEventListener('DOMContentLoaded', function() {
-          // Manejar clic en botón editar
+          // Manejar clic en boton editar
           document.body.addEventListener('click', function(e) {
             const btn = e.target.closest('.edit-venta');
             if (btn) {
@@ -698,7 +698,7 @@ requireLogin();
               if (!fechaInicio || !fechaFin || 
                   !fechaInicio.match(/^\d{4}-\d{2}-\d{2}$/) || 
                   !fechaFin.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                console.error('Error: Fechas inválidas', {fechaInicio, fechaFin});
+                console.error('Error: Fechas invalidas', {fechaInicio, fechaFin});
                 alert('Error: No se pueden cargar los datos de esta venta. Contacte al administrador.');
                 return;
               }
@@ -717,7 +717,7 @@ requireLogin();
             }
           });
 
-          // Validación del formulario
+          // Validacion del formulario
           document.getElementById('formEditarVenta').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -755,7 +755,7 @@ requireLogin();
         <script src="<?php echo BASE_URL; ?>assets/js/bootstrap.bundle.min.js"></script>
         <script>
           document.addEventListener('DOMContentLoaded', function() {
-            // Ordenar por días
+            // Ordenar por dias
             const btnOrdenarDias = document.getElementById('ordenarDias');
             if (btnOrdenarDias) {
               btnOrdenarDias.addEventListener('click', function() {
@@ -764,7 +764,7 @@ requireLogin();
                 const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
                 url.searchParams.set('orden_dias', newOrder);
                 
-                // Cambiar ícono según el orden
+                // Cambiar icono segun el orden
                 const icon = this.querySelector('i');
                 if (icon) {
                   icon.className = newOrder === 'asc' ? 'bi bi-arrow-up' : 'bi bi-arrow-down';
@@ -773,7 +773,7 @@ requireLogin();
                 window.location.href = url.toString();
               });
               
-              // Establecer ícono inicial
+              // Establecer icono inicial
               const url = new URL(window.location.href);
               const currentOrder = url.searchParams.get('orden_dias');
               const icon = btnOrdenarDias.querySelector('i');
@@ -803,7 +803,7 @@ requireLogin();
               window.location.href = url.toString();
             });
 
-            // Sidebar móvil
+            // Sidebar movil
             const sidebar = document.querySelector('.sidebar');
             const sidebarBackdrop = document.getElementById('sidebarMobileBackdrop');
             const btnSidebarMobile = document.getElementById('btnSidebarMobile');
@@ -820,7 +820,7 @@ requireLogin();
               });
             }
 
-            // Delegación de eventos para botones de acciones
+            // Delegacion de eventos para botones de acciones
             document.body.addEventListener('click', function(event) {
               // Editar
               if (event.target.closest('.edit-venta')) {
@@ -832,7 +832,7 @@ requireLogin();
                 document.getElementById('edit-pago').value = btn.dataset.pago;
                 document.getElementById('edit-vendedor_id').value = btn.dataset.vendedor_id;
                 document.getElementById('edit-cuenta_id').value = btn.dataset.cuenta_id;
-                // El modal se abre automáticamente por data-bs-toggle/data-bs-target
+                // El modal se abre automaticamente por data-bs-toggle/data-bs-target
               }
 
               // Eliminar
@@ -850,7 +850,7 @@ requireLogin();
                     .then(res => res.json())
                     .then(data => {
                       if (data.success) {
-                        // Recargar la página completa
+                        // Recargar la pagina completa
                         window.location.reload();
                       } else {
                         alert('Error al eliminar la venta: ' + (data.error || 'Error desconocido'));
@@ -869,32 +869,32 @@ requireLogin();
                 const btn = event.target.closest('.copy-btn');
                 const mensaje = `Datos para ingresar a la cuenta de Chat GPT
 
-Cuenta Chat GPT Plus (${btn.dataset.dias} días)
+Cuenta Chat GPT Plus (${btn.dataset.dias} dias)
 Correo: ${btn.dataset.correo}
-Contraseña: ${btn.dataset.contrasena}
+Contrasena: ${btn.dataset.contrasena}
 
 Fecha ini: ${btn.dataset.inicio}
 Fecha end: ${btn.dataset.fin}
 
 Reglas para el uso de la cuenta:
 
-- No modificar ningún dato de la cuenta, en caso de modificar algún dato de la cuenta, retiro la cuenta del grupo de trabajo y te quitaré el acceso, no cubriré la garantía y el tiempo de servicio.
+- No modificar ningun dato de la cuenta, en caso de modificar algun dato de la cuenta, retiro la cuenta del grupo de trabajo y te quitare el acceso, no cubrire la garantia y el tiempo de servicio.
 - Evita salirte de la cuenta.
-- Referentemente, usa la aplicación móvil en el celular y en computadora navegador Google Chrome NO PESTAÑA INCÓGNITO 
+- Referentemente, usa la aplicacion movil en el celular y en computadora navegador Google Chrome NO PESTAnA INCoGNITO 
 - Link para pc https://auth.openai.com/log-in
 
-Ingresa ahora por favor y te paso los códigos de activación`;
+Ingresa ahora por favor y te paso los codigos de activacion`;
 
                 navigator.clipboard.writeText(mensaje)
                   .then(() => alert('Mensaje copiado al portapapeles'))
                   .catch(err => {
                     console.error('Error al copiar:', err);
-                    alert('No se pudo copiar automáticamente');
+                    alert('No se pudo copiar automaticamente');
                   });
               }
             });
 
-            // Guardar cambios edición
+            // Guardar cambios edicion
             document.getElementById('formEditarVenta').addEventListener('submit', function(e) {
               e.preventDefault();
               const formData = new FormData(this);
@@ -917,14 +917,14 @@ Ingresa ahora por favor y te paso los códigos de activación`;
                 });
             });
 
-            // Búsqueda dinámica para ambas vistas
+            // Busqueda dinamica para ambas vistas
             function handleSearch(value) {
               // Desktop
               document.querySelectorAll('.table tbody tr').forEach(row => {
                 const celular = row.children[1].textContent.toLowerCase();
                 row.style.display = celular.includes(value) ? '' : 'none';
               });
-              // Móvil
+              // Movil
               document.querySelectorAll('.venta-card').forEach(card => {
                 const celular = card.querySelector('.title').textContent.toLowerCase();
                 card.style.display = celular.includes(value) ? '' : 'none';
@@ -939,17 +939,17 @@ Ingresa ahora por favor y te paso los códigos de activación`;
           });
         </script>
         <script>
-          // Búsqueda dinámica
+          // Busqueda dinamica
           document.getElementById('searchInput').addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
 
-            // Para versión desktop
+            // Para version desktop
             document.querySelectorAll('.table tbody tr').forEach(row => {
               const celular = row.children[2].textContent.toLowerCase();
               row.style.display = celular.includes(searchTerm) ? '' : 'none';
             });
 
-            // Para versión móvil
+            // Para version movil
             document.querySelectorAll('.venta-card').forEach(card => {
               const celular = card.querySelector('.title').textContent.toLowerCase();
               card.style.display = celular.includes(searchTerm) ? 'block' : 'none';
@@ -967,7 +967,7 @@ Ingresa ahora por favor y te paso los códigos de activación`;
                 </div>
                 <div class="modal-body">
                   <div class="mb-3">
-                    <label for="numero_celular" class="form-label">Número celular</label>
+                    <label for="numero_celular" class="form-label">Numero celular</label>
                     <input type="text" class="form-control" name="numero_celular" id="numero_celular" required>
                   </div>
                   <div class="mb-3">
@@ -996,11 +996,11 @@ Ingresa ahora por favor y te paso los códigos de activación`;
                       <input type="date" class="form-control" name="fecha_inicio" id="fecha_inicio" required>
                     </div>
                     <div class="col-6 mb-3">
-                      <label for="duracion" class="form-label">Duración</label>
+                      <label for="duracion" class="form-label">Duracion</label>
                       <select class="form-select" id="duracion" required>
-                        <option value="30">30 días</option>
-                        <option value="60">60 días</option>
-                        <option value="90">90 días</option>
+                        <option value="30">30 dias</option>
+                        <option value="60">60 dias</option>
+                        <option value="90">90 dias</option>
                       </select>
                     </div>
                   </div>
@@ -1021,7 +1021,7 @@ Ingresa ahora por favor y te paso los códigos de activación`;
         </div>
 
         <script>
-          // Calcular fecha fin automáticamente
+          // Calcular fecha fin automaticamente
           document.addEventListener('DOMContentLoaded', function() {
             const fechaInicio = document.getElementById('fecha_inicio');
             const duracion = document.getElementById('duracion');
@@ -1060,23 +1060,23 @@ Ingresa ahora por favor y te paso los códigos de activación`;
                   const modal = bootstrap.Modal.getInstance(document.getElementById('nuevaVentaModal'));
                   if (modal) modal.hide();
 
-                  // Opcional: muestra un mensaje de éxito
+                  // Opcional: muestra un mensaje de exito
                   alert(response.message || 'Venta guardada correctamente');
 
-                  // Recarga la página para actualizar la tabla
+                  // Recarga la pagina para actualizar la tabla
                   location.reload();
                 } else {
                   alert(response.message || 'Error al guardar la venta');
                 }
               })
               .catch(() => {
-                alert('Error en la conexión o al procesar la solicitud');
+                alert('Error en la conexion o al procesar la solicitud');
               });
           });
         </script>
         <script>
           document.addEventListener('DOMContentLoaded', function() {
-            // Función de búsqueda unificada
+            // Funcion de busqueda unificada
             function handleSearch(searchTerm) {
               const term = searchTerm.toLowerCase().trim();
 
@@ -1086,14 +1086,14 @@ Ingresa ahora por favor y te paso los códigos de activación`;
                 row.style.display = celular.includes(term) ? '' : 'none';
               });
 
-              // Filtrar cards móviles (versión actualizada)
+              // Filtrar cards moviles (version actualizada)
               document.querySelectorAll('.venta-card-custom').forEach(card => {
                 const celular = card.querySelector('.text-start').textContent.toLowerCase(); // Cambiado a .text-start
                 card.style.display = celular.includes(term) ? 'block' : 'none';
               });
             }
 
-            // Eventos de búsqueda
+            // Eventos de busqueda
             document.getElementById('searchInput').addEventListener('input', function() {
               handleSearch(this.value);
             });
@@ -1102,7 +1102,7 @@ Ingresa ahora por favor y te paso los códigos de activación`;
               handleSearch(this.value);
             });
 
-            // Botones para limpiar búsqueda
+            // Botones para limpiar busqueda
             document.getElementById('clearSearchInput').addEventListener('click', function() {
               document.getElementById('searchInput').value = '';
               handleSearch('');
@@ -1122,7 +1122,7 @@ Ingresa ahora por favor y te paso los códigos de activación`;
             document.body.addEventListener('click', function(e) {
               const btn = e.target.closest('.edit-venta');
               if (btn) {
-                console.log('Datos del botón:', {
+                console.log('Datos del boton:', {
                   id: btn.dataset.id,
                   numero: btn.dataset.numero_celular,
                   inicio: btn.dataset.fecha_inicio,
@@ -1137,8 +1137,8 @@ Ingresa ahora por favor y te paso los códigos de activación`;
                 const fechaFin = btn.dataset.fecha_fin || '';
                 
                 if (!fechaInicio.match(/^\d{4}-\d{2}-\d{2}$/) || !fechaFin.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                  console.error('Formato de fecha inválido:', {fechaInicio, fechaFin});
-                  alert('Error: Formato de fecha inválido. Contacte al administrador.');
+                  console.error('Formato de fecha invalido:', {fechaInicio, fechaFin});
+                  alert('Error: Formato de fecha invalido. Contacte al administrador.');
                   return;
                 }
 
@@ -1151,7 +1151,7 @@ Ingresa ahora por favor y te paso los códigos de activación`;
                 document.getElementById('edit-cuenta_id').value = btn.dataset.cuenta_id || '';
                 document.getElementById('edit-vendedor_id').value = btn.dataset.vendedor_id || '';
 
-                // Mostrar el modal de edición
+                // Mostrar el modal de edicion
                 const modal = new bootstrap.Modal(document.getElementById('editarVentaModal'));
                 modal.show();
               }

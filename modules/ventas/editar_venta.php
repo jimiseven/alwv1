@@ -1,16 +1,34 @@
 <?php
+// Forzar reporte de errores
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+
 require_once '../../config/db.php';
 require_once '../../config/config.php';
+
+// Establecer timezone explícito
+date_default_timezone_set('America/La_Paz');
 
 // Limpiar buffer de salida
 ob_start();
 
-header('Content-Type: application/json');
+// Configurar headers para JSON UTF-8
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-cache, must-revalidate');
+header('Content-Transfer-Encoding: binary');
+header('Expires: 0');
 
 // Validar método POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     ob_end_clean();
     echo json_encode(['success' => false, 'error' => 'Método no permitido']);
+    exit;
+}
+
+// Verificar si hay errores de conexión a DB
+if (!$conn || mysqli_connect_errno()) {
+    ob_end_clean();
+    echo json_encode(['success' => false, 'error' => 'Error de conexión: ' . mysqli_connect_error()]);
     exit;
 }
 
@@ -94,9 +112,17 @@ if (mysqli_stmt_execute($stmt)) {
     mysqli_stmt_fetch($stmt_venta);
     mysqli_stmt_close($stmt_venta);
 
-    // Formatear fechas para el mensaje
-    $fecha_ini = date('d/m/Y', strtotime($fecha_inicio));
-    $fecha_end = date('d/m/Y', strtotime($fecha_fin));
+    // Formatear fechas para el mensaje (usando formato consistente)
+    $meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    $dia_ini = date('d', strtotime($fecha_inicio));
+    $mes_ini = $meses[date('n', strtotime($fecha_inicio)) - 1];
+    $ano_ini = date('Y', strtotime($fecha_inicio));
+    $dia_fin = date('d', strtotime($fecha_fin));
+    $mes_fin = $meses[date('n', strtotime($fecha_fin)) - 1];
+    $ano_fin = date('Y', strtotime($fecha_fin));
+    
+    $fecha_ini = "$dia_ini $mes_ini $ano_ini";
+    $fecha_end = "$dia_fin $mes_fin $ano_fin";
 
     // Construir mensaje para portapapeles
     $mensaje = <<<EOD
@@ -119,15 +145,28 @@ Reglas para el uso de la cuenta:
 Ingresa ahora por favor y te paso los códigos de activación
 EOD;
 
-    ob_end_clean();
-    echo json_encode([
+    // Limpiar todos los niveles de buffer
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
+    
+    $response = [
         'success' => true,
         'message' => 'Venta actualizada correctamente',
         'clipboardText' => $mensaje
-    ]);
+    ];
+    
+    echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
 } else {
-    ob_end_clean();
-    echo json_encode(['success' => false, 'error' => 'Error al actualizar: ' . mysqli_error($conn)]);
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
+    
+    $errorMsg = htmlspecialchars(mysqli_error($conn), ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401, 'UTF-8');
+    echo json_encode([
+        'success' => false, 
+        'error' => 'Error al actualizar: ' . $errorMsg
+    ], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
 }
 
 mysqli_stmt_close($stmt);
