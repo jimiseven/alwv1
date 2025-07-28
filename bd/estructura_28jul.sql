@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 08-05-2025 a las 15:09:45
+-- Tiempo de generación: 28-07-2025 a las 22:22:21
 -- Versión del servidor: 10.4.32-MariaDB
--- Versión de PHP: 8.1.25
+-- Versión de PHP: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -42,21 +42,6 @@ CREATE TABLE `cuentas` (
   `estado` enum('activa','inactiva','suspendida','baneada') DEFAULT 'activa',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `extensiones_ventas`
---
-
-CREATE TABLE `extensiones_ventas` (
-  `id` int(11) NOT NULL,
-  `venta_id` int(11) NOT NULL,
-  `dias_adicionales` int(11) NOT NULL,
-  `vendedor_id` int(11) NOT NULL,
-  `fecha_extension` datetime DEFAULT current_timestamp(),
-  `motivo` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -106,14 +91,6 @@ ALTER TABLE `cuentas`
   ADD KEY `idx_cuentas_estado` (`estado`);
 
 --
--- Indices de la tabla `extensiones_ventas`
---
-ALTER TABLE `extensiones_ventas`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `venta_id` (`venta_id`),
-  ADD KEY `vendedor_id` (`vendedor_id`);
-
---
 -- Indices de la tabla `vendedores`
 --
 ALTER TABLE `vendedores`
@@ -140,12 +117,6 @@ ALTER TABLE `cuentas`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT de la tabla `extensiones_ventas`
---
-ALTER TABLE `extensiones_ventas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT de la tabla `vendedores`
 --
 ALTER TABLE `vendedores`
@@ -160,13 +131,6 @@ ALTER TABLE `ventas`
 --
 -- Restricciones para tablas volcadas
 --
-
---
--- Filtros para la tabla `extensiones_ventas`
---
-ALTER TABLE `extensiones_ventas`
-  ADD CONSTRAINT `extensiones_ventas_ibfk_1` FOREIGN KEY (`venta_id`) REFERENCES `ventas` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `extensiones_ventas_ibfk_2` FOREIGN KEY (`vendedor_id`) REFERENCES `vendedores` (`id`);
 
 --
 -- Filtros para la tabla `ventas`

@@ -460,16 +460,25 @@ requireLogin();
                 if (mysqli_num_rows($resultado) > 0) {
                   while ($fila = mysqli_fetch_assoc($resultado)) {
                     // Formateo de fechas
-                    $fechaInicio = new DateTime($fila['fecha_inicio']);
-                    $fechaFin = new DateTime($fila['fecha_fin']);
+              try {
+                $fechaInicio = new DateTime($fila['fecha_inicio']);
+                $fechaFin = new DateTime($fila['fecha_fin']);
+                
+                if (!$fechaInicio || !$fechaFin) {
+                  throw new Exception('Fecha inválida');
+                }
+              } catch (Exception $e) {
+                error_log("Error al parsear fechas para venta ID {$fila['id']}: " . $e->getMessage());
+                continue; // Saltar esta fila si hay error
+              }
 
                     $diaInicio = $fechaInicio->format('d');
                     $mesInicio = $meses[(int)$fechaInicio->format('n')];
-                    $anoInicio = $fechaInicio->format('y');
+                    $anoInicio = $fechaInicio->format('Y');
 
                     $diaFin = $fechaFin->format('d');
                     $mesFin = $meses[(int)$fechaFin->format('n')];
-                    $anoFin = $fechaFin->format('y');
+                    $anoFin = $fechaFin->format('Y');
 
                     // Cálculo de días
                     $diasContratados = $fechaFin->diff($fechaInicio)->days;
@@ -496,12 +505,12 @@ requireLogin();
     <td class='text-center'>
         <button class='btn btn-sm btn-warning edit-venta me-1' 
             data-id='{$fila['id']}'
-            data-numero_celular='{$fila['numero_celular']}'
-            data-fecha_inicio='{$fila['fecha_inicio']}'
-            data-fecha_fin='{$fila['fecha_fin']}'
-            data-pago='{$fila['pago']}'
-            data-cuenta_id='{$fila['cuenta_id']}'
-            data-vendedor_id='{$_SESSION['user_id']}'>
+                data-numero_celular='{$fila['numero_celular']}'
+                data-fecha_inicio='{$fechaInicio->format('Y-m-d')}'
+                data-fecha_fin='{$fechaFin->format('Y-m-d')}'
+                data-pago='{$fila['pago']}'
+                data-cuenta_id='{$fila['cuenta_id']}'
+                data-vendedor_id='{$_SESSION['user_id']}'>
             <i class='bi bi-pencil'></i>
         </button>
         <button class='btn btn-sm btn-danger delete-venta me-1' 
@@ -540,11 +549,11 @@ requireLogin();
 
               $diaInicio = $fechaInicio->format('d');
               $mesInicio = $meses[(int)$fechaInicio->format('n')];
-              $anoInicio = $fechaInicio->format('y');
+              $anoInicio = $fechaInicio->format('Y');
 
               $diaFin = $fechaFin->format('d');
               $mesFin = $meses[(int)$fechaFin->format('n')];
-              $anoFin = $fechaFin->format('y');
+              $anoFin = $fechaFin->format('Y');
 
               // Cálculos
               $diasContratados = $fechaFin->diff($fechaInicio)->days;
@@ -565,8 +574,8 @@ requireLogin();
             <button class='btn btn-warning btn-sm edit-venta'
                 data-id='{$fila['id']}'
                 data-numero_celular='{$fila['numero_celular']}'
-                data-fecha_inicio='{$fila['fecha_inicio']}'
-                data-fecha_fin='{$fila['fecha_fin']}'
+                data-fecha_inicio='{$fechaInicio->format('Y-m-d')}'
+                data-fecha_fin='{$fechaFin->format('Y-m-d')}'
                 data-pago='{$fila['pago']}'
                 data-cuenta_id='{$fila['cuenta_id']}'
                 data-vendedor_id='{$_SESSION['user_id']}'>
@@ -600,58 +609,149 @@ requireLogin();
           ?>
         </div>
 
-        <!-- Modal Editar Venta -->
+        <!-- Modal Editar Venta - Nueva Versión -->
         <div class="modal fade" id="editarVentaModal" tabindex="-1" aria-labelledby="editarVentaModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-dialog modal-lg">
             <div class="modal-content">
-              <form id="formEditarVenta">
-                <div class="modal-header">
-                  <h5 class="modal-title" id="editarVentaModalLabel"><i class="bi bi-pencil me-2"></i>Editar Venta</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+              <form id="formEditarVenta" autocomplete="off">
+                <div class="modal-header bg-primary text-white">
+                  <h5 class="modal-title" id="editarVentaModalLabel">
+                    <i class="bi bi-pencil-square me-2"></i>Editar Venta
+                  </h5>
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
                   <input type="hidden" name="id" id="edit-id">
-                  <div class="mb-3">
-                    <label class="form-label">Número Celular</label>
-                    <input type="text" class="form-control" name="numero_celular" id="edit-numero_celular" required>
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label">Cuenta</label>
-                    <select class="form-select" name="cuenta_id" id="edit-cuenta_id" required>
-                      <option value="">Seleccionar cuenta...</option>
-                      <?php
-                      $sql_cuentas = "SELECT id, correo FROM cuentas WHERE estado = 'activa' ORDER BY correo";
-                      $res_cuentas = mysqli_query($conn, $sql_cuentas);
-                      while ($cuenta = mysqli_fetch_assoc($res_cuentas)) {
-                        echo "<option value='{$cuenta['id']}'>" . htmlspecialchars($cuenta['correo']) . "</option>";
-                      }
-                      ?>
-                    </select>
-                  </div>
-                  <div class="row">
-                    <div class="col-md-6 mb-3">
-                      <label class="form-label">Fecha Inicio</label>
+                  
+                  <div class="row g-3">
+                    <!-- Número Celular -->
+                    <div class="col-md-6">
+                      <label for="edit-numero_celular" class="form-label">Número Celular</label>
+                      <input type="text" class="form-control" name="numero_celular" id="edit-numero_celular" 
+                             pattern="[0-9]{7,20}" title="Solo números, mínimo 7 dígitos" required>
+                    </div>
+
+                    <!-- Cuenta -->
+                    <div class="col-md-6">
+                      <label for="edit-cuenta_id" class="form-label">Cuenta</label>
+                      <select class="form-select" name="cuenta_id" id="edit-cuenta_id" required>
+                        <option value="">Seleccionar cuenta...</option>
+                        <?php
+                        $sql_cuentas = "SELECT id, correo FROM cuentas WHERE estado = 'activa' ORDER BY correo";
+                        $res_cuentas = mysqli_query($conn, $sql_cuentas);
+                        while ($cuenta = mysqli_fetch_assoc($res_cuentas)) {
+                          echo "<option value='{$cuenta['id']}'>" . htmlspecialchars($cuenta['correo']) . "</option>";
+                        }
+                        ?>
+                      </select>
+                    </div>
+
+                    <!-- Fechas -->
+                    <div class="col-md-6">
+                      <label for="edit-fecha_inicio" class="form-label">Fecha Inicio</label>
                       <input type="date" class="form-control" name="fecha_inicio" id="edit-fecha_inicio" required>
+                      <div class="invalid-feedback">Fecha inválida</div>
                     </div>
-                    <div class="col-md-6 mb-3">
-                      <label class="form-label">Fecha Fin</label>
+                    <div class="col-md-6">
+                      <label for="edit-fecha_fin" class="form-label">Fecha Fin</label>
                       <input type="date" class="form-control" name="fecha_fin" id="edit-fecha_fin" required>
+                      <div class="invalid-feedback">Fecha inválida</div>
                     </div>
+
+                    <!-- Pago -->
+                    <div class="col-md-6">
+                      <label for="edit-pago" class="form-label">Pago (Bs)</label>
+                      <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" step="0.01" min="0" class="form-control" 
+                               name="pago" id="edit-pago" required>
+                      </div>
+                    </div>
+
+                    <!-- Vendedor (oculto) -->
+                    <input type="hidden" name="vendedor_id" id="edit-vendedor_id" value="<?php echo $_SESSION['user_id']; ?>">
                   </div>
-                  <div class="mb-3">
-                    <label class="form-label">Pago</label>
-                    <input type="number" step="0.01" class="form-control" name="pago" id="edit-pago" required>
-                  </div>
-                  <input type="hidden" name="vendedor_id" id="edit-vendedor_id" value="<?php echo $_SESSION['user_id']; ?>">
                 </div>
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                  <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i> Cancelar
+                  </button>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-1"></i> Guardar Cambios
+                  </button>
                 </div>
               </form>
             </div>
           </div>
         </div>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          // Manejar clic en botón editar
+          document.body.addEventListener('click', function(e) {
+            const btn = e.target.closest('.edit-venta');
+            if (btn) {
+              // Validar y cargar datos
+              const fechaInicio = btn.dataset.fecha_inicio;
+              const fechaFin = btn.dataset.fecha_fin;
+              
+              if (!fechaInicio || !fechaFin || 
+                  !fechaInicio.match(/^\d{4}-\d{2}-\d{2}$/) || 
+                  !fechaFin.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                console.error('Error: Fechas inválidas', {fechaInicio, fechaFin});
+                alert('Error: No se pueden cargar los datos de esta venta. Contacte al administrador.');
+                return;
+              }
+
+              // Cargar datos en el formulario
+              document.getElementById('edit-id').value = btn.dataset.id || '';
+              document.getElementById('edit-numero_celular').value = btn.dataset.numero_celular || '';
+              document.getElementById('edit-fecha_inicio').value = fechaInicio;
+              document.getElementById('edit-fecha_fin').value = fechaFin;
+              document.getElementById('edit-pago').value = btn.dataset.pago || '';
+              document.getElementById('edit-cuenta_id').value = btn.dataset.cuenta_id || '';
+              document.getElementById('edit-vendedor_id').value = btn.dataset.vendedor_id || '';
+
+              // Mostrar modal
+              new bootstrap.Modal(document.getElementById('editarVentaModal')).show();
+            }
+          });
+
+          // Validación del formulario
+          document.getElementById('formEditarVenta').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validar fechas
+            const fechaInicio = new Date(this.elements['fecha_inicio'].value);
+            const fechaFin = new Date(this.elements['fecha_fin'].value);
+            
+            if (fechaFin <= fechaInicio) {
+              alert('Error: La fecha fin debe ser posterior a la fecha inicio');
+              return;
+            }
+
+            // Enviar datos
+            const formData = new FormData(this);
+            fetch('editar_venta.php', {
+              method: 'POST',
+              body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                alert('Venta actualizada correctamente');
+                location.reload();
+              } else {
+                alert('Error: ' + (data.error || 'Error desconocido'));
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('Error al procesar la solicitud');
+            });
+          });
+        });
+        </script>
         <script src="<?php echo BASE_URL; ?>assets/js/bootstrap.bundle.min.js"></script>
         <script>
           document.addEventListener('DOMContentLoaded', function() {
@@ -1022,11 +1122,31 @@ Ingresa ahora por favor y te paso los códigos de activación`;
             document.body.addEventListener('click', function(e) {
               const btn = e.target.closest('.edit-venta');
               if (btn) {
-                // Rellenar los campos del modal con los datos del botón
+                console.log('Datos del botón:', {
+                  id: btn.dataset.id,
+                  numero: btn.dataset.numero_celular,
+                  inicio: btn.dataset.fecha_inicio,
+                  fin: btn.dataset.fecha_fin,
+                  pago: btn.dataset.pago,
+                  cuenta: btn.dataset.cuenta_id,
+                  vendedor: btn.dataset.vendedor_id
+                });
+
+                // Validar fechas antes de asignar
+                const fechaInicio = btn.dataset.fecha_inicio || '';
+                const fechaFin = btn.dataset.fecha_fin || '';
+                
+                if (!fechaInicio.match(/^\d{4}-\d{2}-\d{2}$/) || !fechaFin.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                  console.error('Formato de fecha inválido:', {fechaInicio, fechaFin});
+                  alert('Error: Formato de fecha inválido. Contacte al administrador.');
+                  return;
+                }
+
+                // Rellenar campos del modal
                 document.getElementById('edit-id').value = btn.dataset.id || '';
                 document.getElementById('edit-numero_celular').value = btn.dataset.numero_celular || '';
-                document.getElementById('edit-fecha_inicio').value = btn.dataset.fecha_inicio || '';
-                document.getElementById('edit-fecha_fin').value = btn.dataset.fecha_fin || '';
+                document.getElementById('edit-fecha_inicio').value = fechaInicio;
+                document.getElementById('edit-fecha_fin').value = fechaFin;
                 document.getElementById('edit-pago').value = btn.dataset.pago || '';
                 document.getElementById('edit-cuenta_id').value = btn.dataset.cuenta_id || '';
                 document.getElementById('edit-vendedor_id').value = btn.dataset.vendedor_id || '';
