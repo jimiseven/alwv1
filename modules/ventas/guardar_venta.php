@@ -49,10 +49,9 @@ $sql = "INSERT INTO ventas (
     fecha_fin, 
     pago, 
     cuenta_id, 
-    dias, 
     created_at, 
     updated_at
-) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())";
 
 $stmt = mysqli_prepare($conn, $sql);
 if (!$stmt) {
@@ -64,14 +63,13 @@ if (!$stmt) {
 // Bind de parámetros
 mysqli_stmt_bind_param(
     $stmt, 
-    "sisssdi",
+    "sisssi",
     $numero_celular,
     $vendedor_id,
     $fecha_inicio,
     $fecha_fin,
     $pago,
-    $cuenta_id,
-    $dias
+    $cuenta_id
 );
 
 // Ejecutar consulta
