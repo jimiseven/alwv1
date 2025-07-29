@@ -739,7 +739,7 @@ requireLogin();
             .then(response => response.json())
             .then(data => {
               if (data.success) {
-                alert('Venta actualizada correctamente');
+                // alert('Venta actualizada correctamente');
                 location.reload();
               } else {
                 alert('Error: ' + (data.error || 'Error desconocido'));
@@ -894,28 +894,63 @@ Ingresa ahora por favor y te paso los codigos de activacion`;
               }
             });
 
-            // Guardar cambios edicion
-            document.getElementById('formEditarVenta').addEventListener('submit', function(e) {
-              e.preventDefault();
-              const formData = new FormData(this);
-              fetch('editar_venta.php', {
-                  method: 'POST',
-                  body: formData
-                })
-                .then(res => res.json())
-                .then(data => {
-                  if (data.success) {
-                    alert('Venta actualizada correctamente');
-                    window.location.reload();
-                  } else {
-                    alert('Error al actualizar la venta: ' + (data.error || 'Error desconocido'));
+          // Guardar cambios edicion - Usando SweetAlert2 para mejor experiencia
+          document.getElementById('formEditarVenta').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            let processingAlert;
+            
+            // Mostrar alerta de procesamiento sin timer
+            processingAlert = Swal.fire({
+              title: 'Procesando...',
+              allowOutsideClick: false,
+              didOpen: () => {
+                Swal.showLoading();
+                
+                // Forzar duración mínima de 3 segundos
+                setTimeout(() => {
+                  if (Swal.isVisible()) {
+                    Swal.close();
                   }
-                })
-                .catch(error => {
-                  console.error('Error:', error);
-                  alert('Error al procesar la solicitud');
-                });
+                }, 3000);
+              }
             });
+
+            fetch('editar_venta.php', {
+                method: 'POST',
+                body: formData
+              })
+              .then(res => res.json())
+              .then(data => {
+                Swal.close();
+                if (data.success) {
+                  Swal.fire({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    text: 'Venta actualizada correctamente',
+                    confirmButtonText: 'Aceptar'
+                  }).then(() => {
+                    window.location.reload();
+                  });
+                } else {
+                  Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error al actualizar: ' + (data.error || 'Error desconocido')
+                  });
+                }
+              })
+              .catch(error => {
+                Swal.close();
+                console.error('Error:', error);
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: 'Error al procesar la solicitud'
+                });
+              });
+          });
 
             // Busqueda dinamica para ambas vistas
             function handleSearch(value) {
