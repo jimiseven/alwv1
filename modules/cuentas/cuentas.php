@@ -133,6 +133,7 @@ requireLogin();
                         <thead class="sticky-top bg-light">
                             <tr>
                                 <th>#</th>
+                                <th>Tipo</th>
                                 <th>Correo</th>
                                 <th>
                                     Fecha inicio 
@@ -182,7 +183,13 @@ requireLogin();
                                    (SELECT COUNT(DISTINCT numero_celular) FROM ventas WHERE cuenta_id = c.id AND fecha_fin >= CURDATE()) as usuarios_activos,
                                    (SELECT COUNT(DISTINCT numero_celular) FROM ventas WHERE cuenta_id = c.id AND fecha_fin < CURDATE()) as usuarios_inactivos,
                                    (SELECT COUNT(*) FROM ventas WHERE cuenta_id = c.id) as total_ventas,
-                                   (SELECT SUM(pago) FROM ventas WHERE cuenta_id = c.id) - c.costo as ganancia
+                                   (SELECT SUM(pago) FROM ventas WHERE cuenta_id = c.id) - c.costo as ganancia,
+                                   CASE 
+                                     WHEN c.tipo_cuenta = 'gpt' THEN 'c'
+                                     WHEN c.tipo_cuenta = 'gemini' THEN 'g' 
+                                     WHEN c.tipo_cuenta = 'perplexity' THEN 'p'
+                                     ELSE 'x'
+                                   END as tipo_cuenta_abrev
                                    FROM cuentas c
                                    ORDER BY $orderBy";
                             $resultado = mysqli_query($conn, $sql);
@@ -213,6 +220,7 @@ requireLogin();
                                     $claseVencida = strtotime($fecha_fin_comparar) < time() ? 'cuenta-vencida' : '';
                                     echo "<tr class='$claseVencida'>
                                     <td>{$fila['id']}</td>
+                                    <td class='text-center'>{$fila['tipo_cuenta_abrev']}</td>
                                     <td>" . htmlspecialchars($fila['correo']) . "</td>
                                     <td>" . ($fecha_ini ? date('d/m/Y', strtotime($fecha_ini)) : '') . "</td>
                                     <td>$fecha_fin_mostrar</td>
@@ -236,8 +244,9 @@ requireLogin();
                                             data-contrasena-gpt='" . htmlspecialchars($fila['contrasena_gpt'], ENT_QUOTES) . "'
                                             data-codigo='" . htmlspecialchars($fila['codigo'] ?? '', ENT_QUOTES) . "'
                                             data-fecha_inicio='{$fila['fecha_inicio']}'
-                                            data-costo='{$fila['costo']}'
-                                            data-estado='{$fila['estado']}'
+                data-costo='{$fila['costo']}'
+                data-estado='{$fila['estado']}'
+                data-tipo_cuenta='{$fila['tipo_cuenta']}'
                                         >
                                             <i class='bi bi-pencil'></i>
                                         </button>
@@ -323,6 +332,15 @@ requireLogin();
                             <input type="number" step="0.01" class="form-control" name="costo" id="edit-costo" required>
                         </div>
                         <div class="mb-3">
+                            <label class="form-label">Tipo de Cuenta</label>
+                            <select class="form-select" name="tipo_cuenta" id="edit-tipo_cuenta">
+                                <option value="gpt">ChatGPT (c)</option>
+                                <option value="gemini">Gemini (g)</option>
+                                <option value="perplexity">Perplexity (p)</option>
+                                <option value="">Ninguno (x)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label">Estado</label>
                             <select class="form-select" name="estado" id="edit-estado">
                                 <option value="activa">Activa</option>
@@ -405,6 +423,7 @@ requireLogin();
                 document.getElementById('edit-fecha_inicio').value = this.dataset.fecha_inicio;
                 document.getElementById('edit-costo').value = this.dataset.costo;
                 document.getElementById('edit-estado').value = this.dataset.estado;
+                document.getElementById('edit-tipo_cuenta').value = this.dataset.tipo_cuenta || '';
                 var modal = new bootstrap.Modal(document.getElementById('editarCuentaModal'));
                 modal.show();
             });

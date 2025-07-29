@@ -449,6 +449,7 @@ requireLogin();
                 v.cuenta_id,
                 c.correo AS cuenta_correo,
                 c.contrasena_gpt,
+                c.tipo_cuenta,
                 DATEDIFF(v.fecha_fin, CURDATE()) AS dias_restantes
             FROM ventas v
             INNER JOIN cuentas c ON v.cuenta_id = c.id
@@ -517,12 +518,13 @@ requireLogin();
                 data-id='{$fila['id']}'>
             <i class='bi bi-trash'></i>
         </button>
-        <button class='btn btn-sm btn-info copy-btn' 
+                <button class='btn btn-sm btn-info copy-btn' 
                 data-correo='" . htmlspecialchars($fila['cuenta_correo'], ENT_QUOTES) . "'
                 data-contrasena='" . htmlspecialchars($fila['contrasena_gpt'], ENT_QUOTES) . "'
                 data-inicio='{$diaInicio} {$mesInicio} {$anoInicio}'
                 data-fin='{$diaFin} {$mesFin} {$anoFin}'
-                data-dias='{$diasContratados}'>
+                data-dias='{$diasContratados}'
+                data-tipo_cuenta='" . htmlspecialchars($fila['tipo_cuenta'] ?? 'gpt', ENT_QUOTES) . "'>
             <i class='bi bi-clipboard'></i>
         </button>
     </td>
@@ -592,12 +594,13 @@ requireLogin();
         </div>
         <div class='venta-btns d-flex justify-content-between gap-2 px-2 pb-2'>
             <button class='btn btn-outline-dark w-50 delete-venta' data-id='{$fila['id']}'>Eliminar</button>
-            <button class='btn btn-outline-dark w-50 copy-btn'
+                <button class='btn btn-outline-dark w-50 copy-btn'
                 data-correo='" . htmlspecialchars($fila['cuenta_correo'], ENT_QUOTES) . "'
                 data-contrasena='" . htmlspecialchars($fila['contrasena_gpt'], ENT_QUOTES) . "'
                 data-inicio='{$diaInicio} {$mesInicio} {$anoInicio}'
                 data-fin='{$diaFin} {$mesFin} {$anoFin}'
-                data-dias='{$diasContratados}'>
+                data-dias='{$diasContratados}'
+                data-tipo_cuenta='" . htmlspecialchars($fila['tipo_cuenta'] ?? 'gpt', ENT_QUOTES) . "'>
                 Copiar
             </button>
         </div>
@@ -867,9 +870,18 @@ requireLogin();
               // Copiar al portapapeles
               if (event.target.closest('.copy-btn')) {
                 const btn = event.target.closest('.copy-btn');
-                const mensaje = `Datos para ingresar a la cuenta de Chat GPT
+                // Mapeo de tipos de cuenta
+                const tipoCuentaMap = {
+                  'gpt': 'Chat Gpt Plus',
+                  'gemini': 'Gemini Advanced', 
+                  'perplexity': 'Perplexity Pro'
+                };
+                const tipoCuenta = btn.dataset.tipo_cuenta || 'gpt';
+                const nombreCuenta = tipoCuentaMap[tipoCuenta] || 'Chat Gpt Plus';
 
-Cuenta Chat GPT Plus (${btn.dataset.dias} dias)
+                const mensaje = `Datos para ingresar a la cuenta de ${nombreCuenta}
+
+Cuenta ${nombreCuenta} (${btn.dataset.dias} dias)
 Correo: ${btn.dataset.correo}
 Contrasena: ${btn.dataset.contrasena}
 
@@ -881,12 +893,29 @@ Reglas para el uso de la cuenta:
 - No modificar ningun dato de la cuenta, en caso de modificar algun dato de la cuenta, retiro la cuenta del grupo de trabajo y te quitare el acceso, no cubrire la garantia y el tiempo de servicio.
 - Evita salirte de la cuenta.
 - Referentemente, usa la aplicacion movil en el celular y en computadora navegador Google Chrome NO PESTAnA INCoGNITO 
-- Link para pc https://auth.openai.com/log-in
+- Link para pc preferentemente la pagina oficial en tu navegador
 
 Ingresa ahora por favor y te paso los codigos de activacion`;
 
                 navigator.clipboard.writeText(mensaje)
-                  .then(() => alert('Mensaje copiado al portapapeles'))
+                  .then(() => {
+                    // Crear y mostrar alerta de Bootstrap
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-warning alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+                    alertDiv.style.zIndex = '9999';
+                    alertDiv.role = 'alert';
+                    alertDiv.innerHTML = `
+                      <strong>Mensaje copiado al portapeles</strong>
+                      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    `;
+                    document.body.appendChild(alertDiv);
+                    
+                    // Cerrar automaticamente después de 3 segundos
+                    setTimeout(() => {
+                      const bsAlert = new bootstrap.Alert(alertDiv);
+                      bsAlert.close();
+                    }, 3000);
+                  })
                   .catch(err => {
                     console.error('Error al copiar:', err);
                     alert('No se pudo copiar automaticamente');
