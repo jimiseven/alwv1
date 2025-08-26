@@ -495,6 +495,22 @@ requireLogin();
                       $diasMostrar = $diasRestantes;
                     }
 
+                    // Normalizar tipo de cuenta para JS
+                    $tipoRaw = strtolower(trim($fila['tipo_cuenta'] ?? 'gpt'));
+                    if (strpos($tipoRaw, 'gemini') !== false) {
+                      $tipoKey = 'gemini';
+                    } elseif (strpos($tipoRaw, 'perplex') !== false) {
+                      $tipoKey = 'perplexity';
+                    } else {
+                      $tipoKey = 'gpt';
+                    }
+                    $tipoNombreMap = [
+                      'gpt' => 'Chat Gpt Plus',
+                      'gemini' => 'Gemini Advanced',
+                      'perplexity' => 'Perplexity Pro'
+                    ];
+                    $tipoNombre = $tipoNombreMap[$tipoKey];
+
                     echo "<tr>
     <td class='text-center'>{$diasContratados}</td>
     <td class='text-center'>$" . number_format($fila['pago'], 2) . "</td>
@@ -524,7 +540,9 @@ requireLogin();
                 data-inicio='{$diaInicio} {$mesInicio} {$anoInicio}'
                 data-fin='{$diaFin} {$mesFin} {$anoFin}'
                 data-dias='{$diasContratados}'
-                data-tipo_cuenta='" . htmlspecialchars($fila['tipo_cuenta'] ?? 'gpt', ENT_QUOTES) . "'>
+                data-tipo_cuenta='" . htmlspecialchars($fila['tipo_cuenta'] ?? 'gpt', ENT_QUOTES) . "'
+                data-tipo_cuenta_key='{$tipoKey}'
+                data-tipo_cuenta_nombre='" . htmlspecialchars($tipoNombre, ENT_QUOTES) . "'>
             <i class='bi bi-clipboard'></i>
         </button>
     </td>
@@ -571,6 +589,22 @@ requireLogin();
                 $diasMostrar = $diasRestantes;
               }
 
+              // Normalizar tipo de cuenta para JS (movil)
+              $tipoRawM = strtolower(trim($fila['tipo_cuenta'] ?? 'gpt'));
+              if (strpos($tipoRawM, 'gemini') !== false) {
+                $tipoKeyM = 'gemini';
+              } elseif (strpos($tipoRawM, 'perplex') !== false) {
+                $tipoKeyM = 'perplexity';
+              } else {
+                $tipoKeyM = 'gpt';
+              }
+              $tipoNombreMapM = [
+                'gpt' => 'Chat Gpt Plus',
+                'gemini' => 'Gemini Advanced',
+                'perplexity' => 'Perplexity Pro'
+              ];
+              $tipoNombreM = $tipoNombreMapM[$tipoKeyM];
+
               echo "<div class='venta-card-custom mb-3'>
         <div class='edit-btn'>
             <button class='btn btn-warning btn-sm edit-venta'
@@ -600,7 +634,9 @@ requireLogin();
                 data-inicio='{$diaInicio} {$mesInicio} {$anoInicio}'
                 data-fin='{$diaFin} {$mesFin} {$anoFin}'
                 data-dias='{$diasContratados}'
-                data-tipo_cuenta='" . htmlspecialchars($fila['tipo_cuenta'] ?? 'gpt', ENT_QUOTES) . "'>
+                data-tipo_cuenta='" . htmlspecialchars($fila['tipo_cuenta'] ?? 'gpt', ENT_QUOTES) . "'
+                data-tipo_cuenta_key='{$tipoKeyM}'
+                data-tipo_cuenta_nombre='" . htmlspecialchars($tipoNombreM, ENT_QUOTES) . "'>
                 Copiar
             </button>
         </div>
@@ -870,14 +906,16 @@ requireLogin();
               // Copiar al portapapeles
               if (event.target.closest('.copy-btn')) {
                 const btn = event.target.closest('.copy-btn');
-                // Mapeo de tipos de cuenta
-                const tipoCuentaMap = {
-                  'gpt': 'Chat Gpt Plus',
-                  'gemini': 'Gemini Advanced', 
-                  'perplexity': 'Perplexity Pro'
-                };
-                const tipoCuenta = btn.dataset.tipo_cuenta || 'gpt';
-                const nombreCuenta = tipoCuentaMap[tipoCuenta] || 'Chat Gpt Plus';
+                // Deteccion robusta del tipo de cuenta segun el valor recibido
+                const tipoRaw = (btn.dataset.tipo_cuenta || '').toLowerCase();
+                let nombreCuenta = 'Chat Gpt Plus';
+                if (tipoRaw.includes('gemini')) {
+                  nombreCuenta = 'Gemini Advanced';
+                } else if (tipoRaw.includes('perplex')) {
+                  nombreCuenta = 'Perplexity Pro';
+                } else if (tipoRaw.includes('gpt') || tipoRaw.includes('chat')) {
+                  nombreCuenta = 'Chat Gpt Plus';
+                }
 
                 const mensaje = `Datos para ingresar a la cuenta de ${nombreCuenta}
 
@@ -1120,21 +1158,70 @@ Ingresa ahora por favor y te paso los codigos de activacion`;
               .then(res => res.json())
               .then(response => {
                 if (response.success) {
-                  // Cierra el modal usando la API de Bootstrap 5
+                  // Cerrar modal
                   const modal = bootstrap.Modal.getInstance(document.getElementById('nuevaVentaModal'));
                   if (modal) modal.hide();
 
-                  // Opcional: muestra un mensaje de exito
-                  alert(response.message || 'Venta guardada correctamente');
+                  // Intentar copiar el mensaje predeterminado al portapapeles
+                  const texto = response.clipboardText || '';
+                  if (texto) {
+                    navigator.clipboard.writeText(texto)
+                      .then(() => {
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = 'alert alert-warning alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+                        alertDiv.style.zIndex = '9999';
+                        alertDiv.role = 'alert';
+                        alertDiv.innerHTML = `
+                          <strong>Mensaje copiado al portapapeles</strong>
+                          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        `;
+                        document.body.appendChild(alertDiv);
+                        setTimeout(() => {
+                          const bsAlert = new bootstrap.Alert(alertDiv);
+                          bsAlert.close();
+                        }, 3000);
+                      })
+                      .catch(() => {
+                        // Silencioso: si falla el copiado, igual continuamos con el éxito
+                      });
+                  }
 
-                  // Recarga la pagina para actualizar la tabla
-                  location.reload();
+                  // Mostrar aviso no intrusivo y recargar sin pedir confirmación
+                  const alertDiv2 = document.createElement('div');
+                  alertDiv2.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+                  alertDiv2.style.zIndex = '9999';
+                  alertDiv2.role = 'alert';
+                  alertDiv2.innerHTML = `
+                    <strong>Venta guardada - Mensaje copiado</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                  `;
+                  document.body.appendChild(alertDiv2);
+
+                  setTimeout(() => {
+                    try {
+                      const bsAlert2 = new bootstrap.Alert(alertDiv2);
+                      bsAlert2.close();
+                    } catch (e) {}
+                  }, 3000);
+
+                  // Recargar para actualizar la tabla sin interacción adicional
+                  setTimeout(() => {
+                    location.reload();
+                  }, 800);
                 } else {
-                  alert(response.message || 'Error al guardar la venta');
+                  Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: response.message || 'Error al guardar la venta'
+                  });
                 }
               })
               .catch(() => {
-                alert('Error en la conexion o al procesar la solicitud');
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: 'Error en la conexion o al procesar la solicitud'
+                });
               });
           });
         </script>

@@ -74,39 +74,48 @@ mysqli_stmt_bind_param(
 
 // Ejecutar consulta
 if (mysqli_stmt_execute($stmt)) {
-    // Obtener datos de la cuenta
-    $sql_cuenta = "SELECT correo, contrasena_gpt FROM cuentas WHERE id = ?";
+    // Obtener datos de la cuenta (incluye tipo_cuenta para mensaje dinamico)
+    $sql_cuenta = "SELECT correo, contrasena_gpt, tipo_cuenta FROM cuentas WHERE id = ?";
     $stmt_cuenta = mysqli_prepare($conn, $sql_cuenta);
     mysqli_stmt_bind_param($stmt_cuenta, "i", $cuenta_id);
     mysqli_stmt_execute($stmt_cuenta);
-    mysqli_stmt_bind_result($stmt_cuenta, $correo, $contrasena_gpt);
+    mysqli_stmt_bind_result($stmt_cuenta, $correo, $contrasena_gpt, $tipo_cuenta);
     mysqli_stmt_fetch($stmt_cuenta);
     mysqli_stmt_close($stmt_cuenta);
 
-    // Formatear fechas
-    $fecha_ini = date('d/m/Y', strtotime($fecha_inicio));
-    $fecha_end = date('d/m/Y', strtotime($fecha_fin));
+    // Formatear fechas como en la tabla (ej: 05 oct 2024)
+    $meses = [
+        1 => 'ene', 2 => 'feb', 3 => 'mar', 4 => 'abr', 5 => 'may', 6 => 'jun',
+        7 => 'jul', 8 => 'ago', 9 => 'sep', 10 => 'oct', 11 => 'nov', 12 => 'dic'
+    ];
+    $dt_ini = new DateTime($fecha_inicio);
+    $dt_fin = new DateTime($fecha_fin);
+    $fecha_ini = $dt_ini->format('d') . ' ' . $meses[(int)$dt_ini->format('n')] . ' ' . $dt_ini->format('Y');
+    $fecha_end = $dt_fin->format('d') . ' ' . $meses[(int)$dt_fin->format('n')] . ' ' . $dt_fin->format('Y');
 
-    // Construir mensaje para portapapeles
-    $mensaje = <<<EOD
-Datos para ingresar a la cuenta de Chat GPT
+    // Determinar nombre dinamico de cuenta como en copy-btn
+    $tipo_raw = strtolower(trim($tipo_cuenta ?? 'gpt'));
+    if (strpos($tipo_raw, 'gemini') !== false) {
+        $nombreCuenta = 'Gemini Advanced';
+    } elseif (strpos($tipo_raw, 'perplex') !== false) {
+        $nombreCuenta = 'Perplexity Pro';
+    } else {
+        $nombreCuenta = 'Chat Gpt Plus';
+    }
 
-Cuenta Chat GPT Plus (tiempo en días: $dias días)
-Correo: $correo
-contrasena: $contrasena_gpt
-
-Fecha ini: $fecha_ini
-Fecha end: $fecha_end
-
-Cambio de datos para la cuenta de Chat Gpt Plus, ingresa y me confirma por favor
-
-Reglas para el uso de la cuenta:
-* No modificar ningún dato de la cuenta. En caso de modificar algún dato, se retirará la cuenta del grupo de trabajo y se perderá el acceso. No se cubrirá la garantía ni el tiempo de servicio.
-* Evitar salir de la cuenta.
-* Preferentemente, usar la aplicación móvil en el celular y en computadora el navegador Google Chrome (NO usar pestaña de incógnito)
-
-Ingresa ahora por favor y te paso los códigos de activación
-EOD;
+    // Construir mensaje para portapapeles (alineado con copy-btn)
+    $mensaje = "Datos para ingresar a la cuenta de {$nombreCuenta}\n\n" .
+               "Cuenta {$nombreCuenta} ({$dias} dias)\n" .
+               "Correo: {$correo}\n" .
+               "Contrasena: {$contrasena_gpt}\n\n" .
+               "Fecha ini: {$fecha_ini}\n" .
+               "Fecha end: {$fecha_end}\n\n" .
+               "Reglas para el uso de la cuenta:\n\n" .
+               "- No modificar ningun dato de la cuenta, en caso de modificar algun dato de la cuenta, retiro la cuenta del grupo de trabajo y te quitare el acceso, no cubrire la garantia y el tiempo de servicio.\n" .
+               "- Evita salirte de la cuenta.\n" .
+               "- Referentemente, usa la aplicacion movil en el celular y en computadora navegador Google Chrome NO PESTAnA INCoGNITO \n" .
+               "- Link para pc preferentemente la pagina oficial en tu navegador\n\n" .
+               "Ingresa ahora por favor y te paso los codigos de activacion";
 
     ob_end_clean();
     echo json_encode([
