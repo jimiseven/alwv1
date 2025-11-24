@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 28-07-2025 a las 22:22:21
+-- Tiempo de generación: 23-11-2025 a las 23:38:44
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -39,6 +39,7 @@ CREATE TABLE `cuentas` (
   `usuarios` int(11) DEFAULT 0,
   `ganancia` decimal(10,2) DEFAULT NULL,
   `costo` decimal(10,2) NOT NULL,
+  `tipo_cuenta` enum('gpt','gemini','perplexity') DEFAULT NULL,
   `estado` enum('activa','inactiva','suspendida','baneada') DEFAULT 'activa',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()

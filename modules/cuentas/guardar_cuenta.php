@@ -2,7 +2,8 @@
 // IMPORTANTE: No debe haber NINGÚN espacio ni línea antes de <?php
 require_once '../../config/db.php';
 require_once '../../config/config.php';
-
+requireLogin();
+requireAdmin(); // Solo administradores pueden gestionar cuentas
 // Configura cabeceras para JSON
 header('Content-Type: application/json');
 

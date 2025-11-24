@@ -1,8 +1,8 @@
 <?php
 require_once '../../config/db.php';
 require_once '../../config/config.php';
-
-// Validar datos
+requireLogin();
+requireAdmin(); // Solo administradores pueden gestionar cuentas
 $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
 $estado = isset($_POST['estado']) ? $_POST['estado'] : '';
 

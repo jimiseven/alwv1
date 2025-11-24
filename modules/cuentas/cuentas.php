@@ -2,6 +2,7 @@
 require_once '../../config/db.php';
 require_once '../../config/config.php';
 requireLogin();
+requireAdmin(); // Solo administradores pueden gestionar cuentas
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -13,6 +14,19 @@ requireLogin();
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
+        /* Reset y base */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
         .table-container {
             max-height: 500px;
             overflow-y: auto;
@@ -22,71 +36,213 @@ requireLogin();
             margin-bottom: 1.5rem;
         }
 
-    /* Sidebar responsive */
-    @media (max-width: 767px) {
+        /* Sidebar base */
         .sidebar {
             position: fixed;
             top: 0;
-            left: -260px;
-            bottom: 0;
-            width: 260px;
-            z-index: 1050;
-            transition: left 0.3s;
-        }
-
-        .sidebar.show {
-            left: 0 !important;
-        }
-
-        .sidebar-mobile-backdrop {
-            display: none;
-            position: fixed;
-            top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: 1040;
+            width: 260px;
+            height: 100vh;
+            background: linear-gradient(180deg, #2c3e50 0%, #1a2530 100%);
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            overflow-y: auto;
         }
 
-        .sidebar-mobile-backdrop.show {
-            display: block;
+        .main-content {
+            margin-left: 260px;
+            padding: 30px;
+            min-height: 100vh;
+            width: calc(100% - 260px);
+            background: white;
+            position: relative;
+            z-index: 1;
         }
 
-        .mobile-navbar {
-            display: flex;
-            align-items: center;
-            height: 56px;
-            background: #fff;
-            border-bottom: 1px solid #eee;
-            padding: 0 1rem;
-            margin-bottom: 1rem;
-            position: sticky;
-            top: 0;
-            z-index: 1060;
+        /* Mobile styles */
+        @media (max-width: 991.98px) {
+            .sidebar {
+                position: fixed;
+                left: -260px;
+                transform: translateX(0);
+                transition: left 0.3s ease;
+                box-shadow: none;
+            }
+
+            .sidebar.show {
+                left: 0;
+                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 70px 15px 15px 15px;
+                width: 100%;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.show ~ .main-content {
+                transform: translateX(260px);
+            }
+
+            .mobile-navbar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1060;
+                background: white;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                height: 60px;
+                display: flex;
+                align-items: center;
+                padding: 0 1rem;
+            }
+
+            .mobile-navbar h2 {
+                font-size: 1.1rem !important;
+                margin: 0 !important;
+                flex: 1;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .mobile-navbar .admin-badge {
+                font-size: 0.6rem !important;
+                padding: 0.15rem 0.5rem !important;
+            }
+
+            .mobile-only {
+                display: block !important;
+            }
+
+            .sidebar-mobile-backdrop {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+                display: none;
+                pointer-events: none !important;
+            }
+
+            .sidebar-mobile-backdrop.show {
+                display: block;
+                pointer-events: none !important;
+            }
+
+            /* Asegurar que el sidebar esté por encima del backdrop */
+            .sidebar {
+                z-index: 1000 !important;
+                pointer-events: auto !important;
+            }
         }
 
-        .mobile-navbar .btn {
-            font-size: 1.5rem;
-            margin-right: 1rem;
+        @media (min-width: 992px) {
+            .mobile-nav {
+                display: none;
+            }
+
+            .sidebar-mobile-backdrop {
+                display: none !important;
+            }
         }
 
-        .mobile-navbar h2 {
-            font-size: 1.2rem;
-            margin: 0;
+        /* Asegurar que los modales de Bootstrap estén por encima de todo */
+        /* El backdrop debe estar DETRÁS del modal */
+        .modal-backdrop {
+            z-index: 1040 !important;
+            pointer-events: none !important;  /* No debe bloquear clics */
+            background-color: rgba(0, 0, 0, 0.5) !important;  /* Semi-transparente */
         }
-    }
 
-    @media (min-width: 768px) {
-        .mobile-only {
+        .modal-backdrop.show {
+            opacity: 0.5 !important;  /* Opacidad reducida */
+        }
+
+        .modal {
+            z-index: 1055 !important;
+            pointer-events: none !important;  /* Solo el contenido debe recibir clics */
+        }
+
+        .modal.show {
+            pointer-events: auto !important;
+        }
+
+        .modal-dialog {
+            z-index: 1056 !important;
+            position: relative;
+            pointer-events: auto !important;
+            margin: 1.75rem auto;
+        }
+
+        .modal-content {
+            z-index: 1057 !important;
+            position: relative;
+            pointer-events: auto !important;
+            background: white !important;
+            border: 1px solid rgba(0,0,0,.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,.8) !important;  /* Sombra más fuerte */
+        }
+
+        .modal-body,
+        .modal-header,
+        .modal-footer {
+            pointer-events: auto !important;
+            background: white !important;
+            position: relative;
+            z-index: 2;
+        }
+
+        .modal input,
+        .modal select,
+        .modal textarea,
+        .modal button {
+            pointer-events: auto !important;
+            position: relative;
+            z-index: 3;
+            background: white !important;
+        }
+
+        .modal .form-control,
+        .modal .form-select {
+            background-color: white !important;
+            border: 1px solid #ced4da !important;
+        }
+
+        .modal .form-control:focus,
+        .modal .form-select:focus {
+            background-color: white !important;
+            border-color: #86b7fe !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+        }
+
+        /* Asegurar que el sidebar-backdrop no interfiera con modales */
+        .sidebar-mobile-backdrop {
+            z-index: 1030 !important;
+        }
+
+        /* Cuando hay un modal abierto, ocultar completamente el sidebar-backdrop */
+        body.modal-open .sidebar-mobile-backdrop {
             display: none !important;
+            pointer-events: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
         }
-    }
 
-    .sidebar {
-        min-height: 100vh;
-        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-    }
+        /* Asegurar que el sidebar no interfiera cuando hay modal */
+        body.modal-open .sidebar {
+            pointer-events: none !important;
+        }
+
+        /* Pero permitir clicks en los enlaces del sidebar siempre */
+        .sidebar .nav-link {
+            pointer-events: auto !important;
+            cursor: pointer;
+        }
 
         .nav-link:hover:not(.active) {
             background-color: rgba(255, 255, 255, 0.1) !important;
@@ -109,7 +265,7 @@ requireLogin();
 </head>
 
 <body>
-    <div class="container-fluid">
+    <div class="container-fluid p-0">
         <!-- Navbar móvil -->
         <div class="mobile-navbar mobile-only">
             <button class="btn btn-link text-dark p-0" id="btnSidebarMobile" type="button">
@@ -119,9 +275,9 @@ requireLogin();
         </div>
         <div class="sidebar-mobile-backdrop" id="sidebarMobileBackdrop"></div>
 
-        <div class="row">
+        <div class="d-flex">
             <?php include __DIR__ . '/../../includes/sidebar.php'; ?>
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 pt-3">
+            <main class="main-content p-4">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2 class="mb-0"><i class="bi bi-person me-2"></i>Listado de cuentas</h2>
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#nuevaCuentaModal">
@@ -594,6 +750,57 @@ requireLogin();
                     const currentTotal = parseFloat(totalElement.textContent.replace('$', '').replace(/,/g, ''));
                     totalElement.textContent = '$' + (currentTotal - amountToSubtract).toFixed(2);
                 }
+            }
+        });
+    </script>
+
+    <script>
+        // Sidebar móvil
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarBackdrop = document.getElementById('sidebarMobileBackdrop');
+            const btnSidebarMobile = document.getElementById('btnSidebarMobile');
+
+            if (btnSidebarMobile && sidebar && sidebarBackdrop) {
+                btnSidebarMobile.addEventListener('click', function() {
+                    sidebar.classList.toggle('show');
+                    sidebarBackdrop.classList.toggle('show');
+                    document.body.style.overflow = sidebar.classList.contains('show') ? 'hidden' : '';
+                });
+
+                // Cerrar sidebar al hacer click fuera de él
+                document.addEventListener('click', function(e) {
+                    if (window.innerWidth < 992 && sidebar.classList.contains('show')) {
+                        // Si el click no es en el sidebar ni en el botón de toggle
+                        if (!sidebar.contains(e.target) && !btnSidebarMobile.contains(e.target)) {
+                            sidebar.classList.remove('show');
+                            sidebarBackdrop.classList.remove('show');
+                            document.body.style.overflow = '';
+                        }
+                    }
+                });
+
+                // Cerrar sidebar al hacer clic en un enlace del menú (solo en móvil)
+                const sidebarLinks = sidebar.querySelectorAll('.nav-link');
+                sidebarLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        // Solo cerrar en vista móvil
+                        if (window.innerWidth < 992) {
+                            sidebar.classList.remove('show');
+                            sidebarBackdrop.classList.remove('show');
+                            document.body.style.overflow = '';
+                        }
+                    });
+                });
+
+                // Cerrar sidebar cuando se abre cualquier modal de Bootstrap
+                document.addEventListener('show.bs.modal', function() {
+                    if (sidebar.classList.contains('show')) {
+                        sidebar.classList.remove('show');
+                        sidebarBackdrop.classList.remove('show');
+                        document.body.style.overflow = '';
+                    }
+                });
             }
         });
     </script>

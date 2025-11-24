@@ -1,4 +1,4 @@
-<div class="col-md-3 col-lg-2 d-md-block sidebar collapse" style="background: linear-gradient(180deg, #2c3e50 0%, #1a2530 100%);">
+<div class="sidebar" style="background: linear-gradient(180deg, #2c3e50 0%, #1a2530 100%);">
     <div class="position-sticky pt-3">
         <div class="text-center mb-4">
             <h3 class="text-white">ALW</h3>
@@ -12,6 +12,7 @@
                     <i class="bi bi-house-door me-2"></i> Centralizador
                 </a>
             </li>
+            <?php if (isset($_SESSION['user_rol']) && $_SESSION['user_rol'] === 'admin'): ?>
             <li class="nav-item mb-2">
                 <a class="nav-link text-white rounded-pill <?php echo (basename($_SERVER['PHP_SELF']) == 'cuentas.php' || strpos($_SERVER['PHP_SELF'], '/cuentas/')) ? 'active bg-primary' : ''; ?>"
                     href="<?php echo BASE_URL; ?>modules/cuentas/cuentas.php"
@@ -19,6 +20,7 @@
                     <i class="bi bi-person me-2"></i> Cuentas
                 </a>
             </li>
+            <?php endif; ?>
             <li class="nav-item mb-2">
                 <a class="nav-link text-white rounded-pill <?php echo (basename($_SERVER['PHP_SELF']) == 'ventas.php' || strpos($_SERVER['PHP_SELF'], '/ventas/')) ? 'active bg-primary' : ''; ?>"
                     href="<?php echo BASE_URL; ?>modules/ventas/ventas.php"
@@ -26,6 +28,15 @@
                     <i class="bi bi-cart me-2"></i> Ventas
                 </a>
             </li>
+            <?php if (isset($_SESSION['user_rol']) && $_SESSION['user_rol'] === 'admin'): ?>
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white rounded-pill <?php echo (basename($_SERVER['PHP_SELF']) == 'usuarios.php' || strpos($_SERVER['PHP_SELF'], '/usuarios/')) ? 'active bg-primary' : ''; ?>"
+                    href="<?php echo BASE_URL; ?>modules/usuarios/usuarios.php"
+                    style="transition: all 0.3s;">
+                    <i class="bi bi-people me-2"></i> Usuarios
+                </a>
+            </li>
+            <?php endif; ?>
 
             <div class="mt-5 pt-3 border-top border-secondary">
                 <li class="nav-item">

@@ -18,7 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['error'] = "Usuario y contraseña son requeridos";
     } else {
         // Consultar usuario
-        $sql = "SELECT id, usuario, contrasena, activo FROM vendedores WHERE usuario = ?";
+        $sql = "SELECT id, usuario, contrasena, activo, rol FROM vendedores WHERE usuario = ?";
         $stmt = mysqli_prepare($conn, $sql);
         mysqli_stmt_bind_param($stmt, "s", $usuario);
         
@@ -26,13 +26,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             mysqli_stmt_store_result($stmt);
             
             if (mysqli_stmt_num_rows($stmt) == 1) {
-                mysqli_stmt_bind_result($stmt, $id, $usuario, $hashed_password, $activo);
+                mysqli_stmt_bind_result($stmt, $id, $usuario, $hashed_password, $activo, $rol);
                 mysqli_stmt_fetch($stmt);
                 
                 if ($activo && password_verify($password, $hashed_password)) {
                     // Autenticación exitosa
                     $_SESSION['user_id'] = $id;
                     $_SESSION['username'] = $usuario;
+                    $_SESSION['user_rol'] = $rol;
                     
                     // Regenerar ID de sesión
                     session_regenerate_id(true);

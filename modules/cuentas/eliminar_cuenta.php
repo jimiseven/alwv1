@@ -1,6 +1,8 @@
 <?php
 require_once '../../config/db.php';
 require_once '../../config/config.php';
+requireLogin();
+requireAdmin(); // Solo administradores pueden gestionar cuentas
 
 header('Content-Type: application/json');
 

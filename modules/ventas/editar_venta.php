@@ -5,6 +5,7 @@ ini_set('display_errors', '1');
 
 require_once '../../config/db.php';
 require_once '../../config/config.php';
+requireLogin();
 
 // Establecer timezone explícito
 date_default_timezone_set('America/La_Paz');
@@ -58,16 +59,20 @@ if (!empty($errores)) {
     exit;
 }
 
-// Consulta SQL para actualizar
+// Consulta SQL para actualizar (NO permite cambiar vendedor_id)
 $sql = "UPDATE ventas SET
     numero_celular = ?,
-    vendedor_id = ?,
     fecha_inicio = ?,
     fecha_fin = ?,
     pago = ?,
     cuenta_id = ?,
     updated_at = NOW()
 WHERE id = ?";
+
+// Si no es admin, agregar restricción de vendedor_id
+if (!isAdmin()) {
+    $sql .= " AND vendedor_id = " . $_SESSION['user_id'];
+}
 
 $stmt = mysqli_prepare($conn, $sql);
 if (!$stmt) {
@@ -76,12 +81,11 @@ if (!$stmt) {
     exit;
 }
 
-// Bind de parámetros
+// Bind de parámetros (sin vendedor_id)
 mysqli_stmt_bind_param(
     $stmt,
-    "sisssii",
+    "ssssii",
     $numero_celular,
-    $vendedor_id,
     $fecha_inicio,
     $fecha_fin,
     $pago,

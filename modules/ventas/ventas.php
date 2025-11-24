@@ -2,6 +2,22 @@
 require_once '../../config/db.php';
 require_once '../../config/config.php';
 requireLogin();
+
+$tipoCuentaActual = isset($_GET['tipo_cuenta']) ? trim($_GET['tipo_cuenta']) : '';
+$tiposCuenta = [];
+
+$sqlTiposCuenta = "SELECT DISTINCT tipo_cuenta FROM cuentas WHERE tipo_cuenta IS NOT NULL AND tipo_cuenta <> '' ORDER BY tipo_cuenta";
+$resTiposCuenta = mysqli_query($conn, $sqlTiposCuenta);
+
+if ($resTiposCuenta) {
+    while ($tipoRow = mysqli_fetch_assoc($resTiposCuenta)) {
+        $tiposCuenta[] = $tipoRow['tipo_cuenta'];
+    }
+}
+
+if ($tipoCuentaActual !== '' && !in_array($tipoCuentaActual, $tiposCuenta, true)) {
+    $tipoCuentaActual = '';
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -19,20 +35,507 @@ requireLogin();
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <style>
-    body {
-      background-color: #f8f9fa;
-      color: #343a40;
-    }
+        /* Reset y base */
+        * {
+            box-sizing: border-box;
+        }
 
-    .table-container {
-      max-height: 600px;
-      overflow-y: auto;
-      background: #fff;
-      border-radius: 0.5rem;
-      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
-      margin-bottom: 1.5rem;
-      padding: 1rem;
-    }
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .table-container {
+            max-height: 600px;
+            overflow-y: auto;
+            background: #fff;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+        }
+
+        .ventas-toolbar {
+            background: #ffffff;
+            border-radius: 1rem;
+            padding: 1.25rem 1.5rem;
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+            margin-bottom: 1.5rem;
+        }
+
+        .ventas-toolbar .toolbar-header {
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f1f5f9;
+            margin-bottom: 1.25rem;
+        }
+
+        .ventas-toolbar h2 {
+            margin: 0;
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 1.75rem;
+        }
+
+        .ventas-toolbar .toolbar-main {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 1.5rem;
+            align-items: end;
+        }
+
+        .ventas-toolbar .toolbar-search {
+            min-width: 280px;
+        }
+
+        .ventas-toolbar .toolbar-search .input-group {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+
+        .ventas-toolbar .toolbar-search .input-group-text {
+            border: 1px solid #e2e8f0;
+            background: white;
+        }
+
+        .ventas-toolbar .toolbar-search .form-control {
+            border: 1px solid #e2e8f0;
+            padding: 0.65rem 1rem;
+        }
+
+        .ventas-toolbar .toolbar-search .form-control:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .ventas-toolbar .toolbar-filters {
+            display: flex;
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .ventas-toolbar .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 200px;
+        }
+
+        .ventas-toolbar .filter-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #475569;
+            margin: 0;
+        }
+
+        .ventas-toolbar .filter-item .form-select {
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 0.65rem 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            transition: all 0.2s;
+        }
+
+        .ventas-toolbar .filter-item .form-select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .ventas-toolbar #limpiarFiltros {
+            padding: 0.65rem 1.25rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .ventas-toolbar #limpiarFiltros:hover {
+            background-color: #dc2626;
+            border-color: #dc2626;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+
+        .ventas-toolbar .toolbar-action .btn-primary {
+            padding: 0.75rem 2rem;
+            border-radius: 0.9rem;
+            font-weight: 600;
+            font-size: 1.05rem;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+            transition: all 0.2s;
+        }
+
+        .ventas-toolbar .toolbar-action .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        @media (max-width: 1400px) {
+            .ventas-toolbar .toolbar-main {
+                grid-template-columns: 1fr;
+                gap: 1.25rem;
+            }
+
+            .ventas-toolbar .toolbar-filters {
+                flex-wrap: wrap;
+            }
+        }
+
+        .ventas-toolbar-mobile {
+            background: #ffffff;
+            border-radius: 1rem;
+            padding: 1rem 1.25rem;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .ventas-toolbar-mobile .toolbar-block {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .ventas-toolbar-mobile .input-group > .input-group-text {
+            border-radius: 0.75rem 0 0 0.75rem;
+            border-right: none;
+        }
+
+        .ventas-toolbar-mobile .input-group > .form-control,
+        .ventas-toolbar-mobile .input-group > .btn,
+        .ventas-toolbar-mobile .form-select {
+            border-radius: 0.75rem;
+        }
+
+        .ventas-toolbar-mobile .toolbar-action .btn {
+            padding: 0.75rem 1rem;
+            border-radius: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        /* Sidebar base */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 260px;
+            height: 100vh;
+            background: linear-gradient(180deg, #2c3e50 0%, #1a2530 100%);
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .main-content {
+            margin-left: 260px;
+            padding: 30px;
+            min-height: 100vh;
+            width: calc(100% - 260px);
+            background: white;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Mobile styles */
+        @media (max-width: 991.98px) {
+            .sidebar {
+                position: fixed;
+                left: -260px !important;
+                transform: translateX(0) !important;
+                transition: left 0.3s ease;
+                box-shadow: none;
+            }
+
+            .sidebar.show {
+                left: 0 !important;
+                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 85px 12px 20px 12px;
+                width: 100%;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.show ~ .main-content {
+                transform: translateX(260px);
+            }
+
+            .mobile-navbar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1060;
+                background: white;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                height: 60px;
+                display: flex;
+                align-items: center;
+                padding: 0 1rem;
+            }
+
+            .ventas-toolbar-mobile {
+                margin-top: 0.5rem;
+                margin-bottom: 1.25rem;
+                padding: 1rem;
+                box-shadow: 0 8px 20px rgba(15, 23, 42, 0.1);
+            }
+
+            .ventas-toolbar-mobile .toolbar-block {
+                gap: 0.6rem;
+            }
+
+            .ventas-toolbar-mobile .form-label {
+                font-size: 0.9rem;
+                font-weight: 600;
+                color: #334155;
+                margin-bottom: 0.4rem;
+            }
+
+            .ventas-toolbar-mobile .input-group,
+            .ventas-toolbar-mobile .form-select {
+                font-size: 0.95rem;
+            }
+
+            .ventas-toolbar-mobile .toolbar-action {
+                margin-top: 0.25rem;
+            }
+
+            .mobile-navbar h2 {
+                font-size: 1.1rem !important;
+                margin: 0 !important;
+                flex: 1;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .mobile-navbar .admin-badge {
+                font-size: 0.6rem !important;
+                padding: 0.15rem 0.5rem !important;
+            }
+
+            .mobile-only {
+                display: block !important;
+            }
+
+            .sidebar-mobile-backdrop {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+                display: none;
+                pointer-events: none !important;
+            }
+
+            .sidebar-mobile-backdrop.show {
+                display: block;
+                pointer-events: none !important;
+            }
+
+            /* Asegurar que el sidebar esté por encima del backdrop */
+            .sidebar {
+                z-index: 1000 !important;
+                pointer-events: auto !important;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .mobile-nav {
+                display: none;
+            }
+
+            .sidebar-mobile-backdrop {
+                display: none !important;
+            }
+
+            .mobile-only {
+                display: none !important;
+            }
+
+            .desktop-only {
+                display: block !important;
+            }
+        }
+
+        /* Asegurar que los modales de Bootstrap estén por encima de todo */
+        /* El backdrop debe estar DETRÁS del modal */
+        .modal-backdrop {
+            z-index: 1040 !important;
+            pointer-events: none !important;  /* No debe bloquear clics */
+            background-color: rgba(0, 0, 0, 0.5) !important;  /* Semi-transparente */
+        }
+
+        .modal-backdrop.show {
+            opacity: 0.5 !important;  /* Opacidad reducida */
+        }
+
+        .modal {
+            z-index: 1055 !important;
+            pointer-events: none !important;  /* Solo el contenido debe recibir clics */
+        }
+
+        .modal.show {
+            pointer-events: auto !important;
+        }
+
+        .modal-dialog {
+            z-index: 1056 !important;
+            position: relative;
+            pointer-events: auto !important;
+            margin: 1.75rem auto;
+        }
+
+        .modal-content {
+            z-index: 1057 !important;
+            position: relative;
+            pointer-events: auto !important;
+            background: white !important;
+            border: 1px solid rgba(0,0,0,.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,.8) !important;  /* Sombra más fuerte */
+        }
+
+        .modal-header {
+            pointer-events: auto !important;
+            background: white !important;
+            position: relative;
+            z-index: 2;
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .modal-body {
+            pointer-events: auto !important;
+            background: white !important;
+            position: relative;
+            z-index: 2;
+            padding: 1.5rem;
+        }
+
+        .modal-body .row {
+            margin: 0;
+            row-gap: 1.25rem;
+        }
+
+        .modal-body .form-label {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .modal-footer {
+            pointer-events: auto !important;
+            background: white !important;
+            position: relative;
+            z-index: 2;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            padding: 1.25rem 1.5rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .modal-footer .btn {
+            font-size: 1.1rem;
+            padding: 0.6rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+        }
+
+        .modal-footer .btn-primary {
+            background: #2563eb !important;
+            color: #fff !important;
+            border: none !important;
+        }
+        .modal-footer .btn-primary:hover {
+            background: #1d4ed8 !important;
+            color: #fff !important;
+            box-shadow: 0 4px 16px rgba(37,99,235,0.15);
+        }
+        .modal-footer .btn-secondary {
+            background: #f3f4f6 !important;
+            color: #1e293b !important;
+            border: 1px solid #cbd5e1 !important;
+        }
+        .modal-footer .btn-secondary:hover {
+            background: #e5e7eb !important;
+            color: #111827 !important;
+        }
+
+        .modal input,
+        .modal select,
+        .modal textarea,
+        .modal button {
+            pointer-events: auto !important;
+            position: relative;
+            z-index: 3;
+            background: white !important;
+        }
+
+        .modal .form-control,
+        .modal .form-select {
+            background-color: white !important;
+            border: 1px solid #ced4da !important;
+        }
+
+        .modal .form-control:focus,
+        .modal .form-select:focus {
+            background-color: white !important;
+            border-color: #86b7fe !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+        }
+
+        /* Asegurar que el sidebar-backdrop no interfiera con modales */
+        .sidebar-mobile-backdrop {
+            z-index: 1030 !important;
+        }
+
+        /* Cuando hay un modal abierto, ocultar completamente el sidebar-backdrop */
+        body.modal-open .sidebar-mobile-backdrop {
+            display: none !important;
+            pointer-events: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+        }
+
+        /* Asegurar que el sidebar no interfiera cuando hay modal */
+        body.modal-open .sidebar {
+            pointer-events: none !important;
+        }
+
+        /* Pero permitir clicks en los enlaces del sidebar siempre */
+        .sidebar .nav-link {
+            pointer-events: auto !important;
+            cursor: pointer;
+        }
+
+        @media (max-width: 991.98px) {
+            .mobile-only {
+                display: block !important;
+            }
+
+            .desktop-only {
+                display: none !important;
+            }
+        }
 
     .table thead th {
       position: sticky;
@@ -98,78 +601,7 @@ requireLogin();
       border: none;
     }
 
-    .sidebar-mobile-backdrop {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.4);
-      z-index: 1049;
-    }
-
-    @media (min-width: 768px) {
-      .mobile-only {
-        display: none !important;
-      }
-
-      .desktop-only {
-        display: block !important;
-      }
-    }
-
     @media (max-width: 767px) {
-      .desktop-only {
-        display: none !important;
-      }
-
-      .mobile-only {
-        display: block !important;
-      }
-
-      .sidebar {
-        position: fixed !important;
-        top: 0;
-        left: -260px;
-        bottom: 0;
-        width: 260px;
-        z-index: 1050;
-        transition: left 0.3s;
-      }
-
-      .sidebar.show {
-        left: 0 !important;
-      }
-
-      .sidebar-mobile-backdrop.show {
-        display: block !important;
-      }
-
-      .mobile-navbar {
-        display: flex;
-        align-items: center;
-        height: 56px;
-        background: #fff;
-        border-bottom: 1px solid #eee;
-        padding: 0 1rem;
-        margin-bottom: 1rem;
-        position: sticky;
-        top: 0;
-        z-index: 1060;
-      }
-
-      .mobile-navbar .btn {
-        font-size: 1.5rem;
-        margin-right: 1rem;
-      }
-
-      .mobile-navbar h2 {
-        font-size: 1.2rem;
-        margin: 0;
-      }
-    }
-
     /* vista movil - diseno mejorado */
     .venta-card-custom {
       background: #ffffff;
@@ -325,67 +757,123 @@ requireLogin();
 </head>
 
 <body>
-  <div class="container-fluid">
-    <div class="row">
-      <!-- Boton hamburguesa y backdrop solo en movil -->
-      <div class="mobile-navbar mobile-only">
-        <button class="btn btn-link text-dark p-0" id="btnSidebarMobile" type="button">
-          <i class="bi bi-list"></i>
-        </button>
-        <h2 class="mb-0"><i class="bi bi-cart"></i> Ventas</h2>
-      </div>
-      <div class="sidebar-mobile-backdrop" id="sidebarMobileBackdrop"></div>
-      <?php include __DIR__ . '/../../includes/sidebar.php'; ?>
-      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 pt-3">
-        <!-- Busqueda y boton en movil -->
-        <div class="mobile-only mb-3">
-          <div class="input-group mb-3">
-            <input type="text" id="mobileSearch" class="form-control" placeholder="Buscar por numero...">
-            <button type="button" class="btn btn-outline-secondary" id="clearMobileSearchInput" title="Borrar busqueda">
-              <i class="bi bi-x-lg"></i>
+    <div class="container-fluid p-0">
+        <!-- Navbar móvil -->
+        <div class="mobile-navbar mobile-only">
+            <button class="btn btn-link text-dark p-0" id="btnSidebarMobile" type="button">
+                <i class="bi bi-list"></i>
             </button>
-            <span class="input-group-text"><i class="bi bi-search"></i></span>
-          </div>
-          <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#nuevaVentaModal">
-            <i class="bi bi-plus-circle"></i> Nueva venta
-          </button>
+            <h2 class="mb-0"><i class="bi bi-cart"></i> Ventas</h2>
         </div>
+        <div class="sidebar-mobile-backdrop" id="sidebarMobileBackdrop"></div>
 
-        <!-- Desktop: barra de busqueda y boton -->
-        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 desktop-only">
-          <h2><i class="bi bi-cart"></i> Listado de Ventas</h2>
-          <div class="d-flex gap-2">
+        <div class="d-flex">
+            <?php include __DIR__ . '/../../includes/sidebar.php'; ?>
+            <main class="main-content p-4">
+        <!-- Toolbar móvil -->
+        <div class="ventas-toolbar-mobile mobile-only">
+          <div class="toolbar-block">
+            <label class="form-label mb-2" for="mobileSearch">Buscar por número</label>
             <div class="input-group">
-              <input type="text" id="searchInput" class="form-control" placeholder="Buscar por numero...">
-              <button type="button" class="btn btn-outline-secondary" id="clearSearchInput" title="Borrar busqueda">
+              <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+              <input type="text" id="mobileSearch" class="form-control" placeholder="Buscar por número...">
+              <button type="button" class="btn btn-outline-secondary" id="clearMobileSearchInput" title="Borrar búsqueda">
                 <i class="bi bi-x-lg"></i>
               </button>
-              <span class="input-group-text"><i class="bi bi-search"></i></span>
             </div>
-            <div class="input-group" style="width: 350px;">
-              <select class="form-select" id="filtroCuenta">
-                <option value="">Todas las cuentas</option>
+          </div>
+          <div class="toolbar-block">
+            <label class="form-label mb-2" for="mobileFiltroTipo">Tipo de cuenta</label>
+            <select class="form-select" id="mobileFiltroTipo">
+              <option value="">Todos los tipos</option>
+              <?php foreach ($tiposCuenta as $tipo): ?>
+                <option value="<?php echo htmlspecialchars($tipo); ?>" <?php echo $tipo === $tipoCuentaActual ? 'selected' : ''; ?>>
+                  <?php echo ucfirst(htmlspecialchars($tipo)); ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <div class="toolbar-block">
+            <label class="form-label mb-2" for="mobileFiltroCuenta">Cuenta</label>
+            <select class="form-select" id="mobileFiltroCuenta">
+              <option value="">Todas las cuentas</option>
               <?php
-              $sqlCuentas = "SELECT id, correo, estado FROM cuentas ORDER BY estado DESC, correo";
-              $resCuentas = mysqli_query($conn, $sqlCuentas);
-              while ($cuenta = mysqli_fetch_assoc($resCuentas)) {
+              $sqlCuentasMobile = "SELECT id, correo, estado FROM cuentas ORDER BY estado DESC, correo";
+              $resCuentasMobile = mysqli_query($conn, $sqlCuentasMobile);
+              while ($cuenta = mysqli_fetch_assoc($resCuentasMobile)) {
                 $color = $cuenta['estado'] === 'activa' ? 'text-success' : 'text-danger';
-                echo "<option value='{$cuenta['id']}' class='{$color}'>" . 
-                     htmlspecialchars($cuenta['correo']) . 
-                     ($cuenta['estado'] === 'activa' ? '' : ' (Inactiva)') . 
+                $selected = (isset($_GET['cuenta_id']) && $_GET['cuenta_id'] == $cuenta['id']) ? 'selected' : '';
+                echo "<option value='{$cuenta['id']}' class='{$color}' {$selected}>" .
+                     htmlspecialchars($cuenta['correo']) .
+                     ($cuenta['estado'] === 'activa' ? '' : ' (Inactiva)') .
                      "</option>";
               }
               ?>
-              </select>
-              <?php if(isset($_GET['cuenta_id'])) { ?>
-                <button class="btn btn-outline-secondary" id="limpiarFiltros" type="button" title="Limpiar filtros">
+            </select>
+          </div>
+          <div class="toolbar-action">
+            <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#nuevaVentaModal">
+              <i class="bi bi-plus-circle"></i> Nueva venta
+            </button>
+          </div>
+        </div>
+
+        <!-- Desktop: barra de búsqueda y filtros -->
+        <div class="ventas-toolbar desktop-only">
+          <div class="toolbar-header">
+            <h2 class="mb-0"><i class="bi bi-cart"></i> Listado de Ventas</h2>
+          </div>
+          <div class="toolbar-main">
+            <div class="toolbar-search">
+              <div class="input-group">
+                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                <input type="text" id="searchInput" class="form-control border-start-0" placeholder="Buscar por número...">
+                <button type="button" class="btn btn-outline-secondary" id="clearSearchInput" title="Borrar búsqueda">
                   <i class="bi bi-x-lg"></i>
+                </button>
+              </div>
+            </div>
+            <div class="toolbar-filters">
+              <div class="filter-item">
+                <label class="filter-label">Cuenta</label>
+                <select class="form-select" id="filtroCuenta">
+                  <option value="">Todas las cuentas</option>
+                  <?php
+                  $sqlCuentas = "SELECT id, correo, estado FROM cuentas ORDER BY estado DESC, correo";
+                  $resCuentas = mysqli_query($conn, $sqlCuentas);
+                  while ($cuenta = mysqli_fetch_assoc($resCuentas)) {
+                    $color = $cuenta['estado'] === 'activa' ? 'text-success' : 'text-danger';
+                    $selected = (isset($_GET['cuenta_id']) && $_GET['cuenta_id'] == $cuenta['id']) ? 'selected' : '';
+                    echo "<option value='{$cuenta['id']}' class='{$color}' {$selected}>" .
+                         htmlspecialchars($cuenta['correo']) .
+                         ($cuenta['estado'] === 'activa' ? '' : ' (Inactiva)') .
+                         "</option>";
+                  }
+                  ?>
+                </select>
+              </div>
+              <div class="filter-item">
+                <label class="filter-label">Tipo</label>
+                <select class="form-select" id="filtroTipoCuenta">
+                  <option value="">Todos</option>
+                  <?php foreach ($tiposCuenta as $tipo): ?>
+                    <option value="<?php echo htmlspecialchars($tipo); ?>" <?php echo $tipo === $tipoCuentaActual ? 'selected' : ''; ?>>
+                      <?php echo ucfirst(htmlspecialchars($tipo)); ?>
+                    </option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+              <?php if(isset($_GET['cuenta_id']) || $tipoCuentaActual !== '') { ?>
+                <button class="btn btn-outline-danger" id="limpiarFiltros" type="button" title="Limpiar filtros">
+                  <i class="bi bi-x-circle"></i> Limpiar
                 </button>
               <?php } ?>
             </div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#nuevaVentaModal">
-              <i class="bi bi-plus-circle"></i> Nueva venta
-            </button>
+            <div class="toolbar-action">
+              <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#nuevaVentaModal">
+                <i class="bi bi-plus-circle"></i> Nueva venta
+              </button>
+            </div>
           </div>
         </div>
 
@@ -437,6 +925,12 @@ requireLogin();
                 $filtroCuenta = "AND v.cuenta_id = " . intval($_GET['cuenta_id']);
             }
 
+            $filtroTipoCuenta = "";
+            if ($tipoCuentaActual !== '') {
+                $tipoCuentaEscaped = mysqli_real_escape_string($conn, $tipoCuentaActual);
+                $filtroTipoCuenta = "AND c.tipo_cuenta = '" . $tipoCuentaEscaped . "'";
+            }
+
             $ordenDias = isset($_GET['orden_dias']) && $_GET['orden_dias'] === 'asc' ? 'ASC' : 'DESC';
             
             $sql = "SELECT 
@@ -453,8 +947,14 @@ requireLogin();
                 DATEDIFF(v.fecha_fin, CURDATE()) AS dias_restantes
             FROM ventas v
             INNER JOIN cuentas c ON v.cuenta_id = c.id
-            WHERE 1=1 $filtroCuenta
-            ORDER BY dias_restantes $ordenDias, v.fecha_inicio DESC";
+            WHERE 1=1 $filtroCuenta $filtroTipoCuenta";
+            
+            // Filtrar por rol: si no es admin, mostrar solo sus ventas
+            if (!isAdmin()) {
+                $sql .= " AND v.vendedor_id = " . $_SESSION['user_id'];
+            }
+            
+            $sql .= " ORDER BY dias_restantes $ordenDias, v.fecha_inicio DESC";
 
                 $resultado = mysqli_query($conn, $sql);
 
@@ -825,37 +1325,75 @@ requireLogin();
             document.getElementById('limpiarFiltros')?.addEventListener('click', function() {
               const url = new URL(window.location.href);
               url.searchParams.delete('cuenta_id');
+              url.searchParams.delete('tipo_cuenta');
               window.location.href = url.toString();
             });
 
             // Filtro por cuenta
-            document.getElementById('filtroCuenta').addEventListener('change', function() {
-              const cuentaId = this.value;
-              const url = new URL(window.location.href);
-              
-              if (cuentaId) {
-                url.searchParams.set('cuenta_id', cuentaId);
-              } else {
-                url.searchParams.delete('cuenta_id');
-              }
-              
-              window.location.href = url.toString();
-            });
+            const filtroCuentaSelect = document.getElementById('filtroCuenta');
+            if (filtroCuentaSelect) {
+              filtroCuentaSelect.addEventListener('change', function() {
+                const cuentaId = this.value;
+                const url = new URL(window.location.href);
 
-            // Sidebar movil
-            const sidebar = document.querySelector('.sidebar');
-            const sidebarBackdrop = document.getElementById('sidebarMobileBackdrop');
-            const btnSidebarMobile = document.getElementById('btnSidebarMobile');
-            if (btnSidebarMobile && sidebar && sidebarBackdrop) {
-              btnSidebarMobile.addEventListener('click', function() {
-                sidebar.classList.add('show');
-                sidebarBackdrop.classList.add('show');
-                document.body.style.overflow = 'hidden';
+                if (cuentaId) {
+                  url.searchParams.set('cuenta_id', cuentaId);
+                } else {
+                  url.searchParams.delete('cuenta_id');
+                }
+
+                window.location.href = url.toString();
               });
-              sidebarBackdrop.addEventListener('click', function() {
-                sidebar.classList.remove('show');
-                sidebarBackdrop.classList.remove('show');
-                document.body.style.overflow = '';
+            }
+
+            // Filtro por tipo (desktop)
+            const filtroTipoSelect = document.getElementById('filtroTipoCuenta');
+            if (filtroTipoSelect) {
+              filtroTipoSelect.addEventListener('change', function() {
+                const tipo = this.value;
+                const url = new URL(window.location.href);
+
+                if (tipo) {
+                  url.searchParams.set('tipo_cuenta', tipo);
+                } else {
+                  url.searchParams.delete('tipo_cuenta');
+                }
+
+                window.location.href = url.toString();
+              });
+            }
+
+            // Filtro por tipo (móvil)
+            const mobileFiltroTipo = document.getElementById('mobileFiltroTipo');
+            if (mobileFiltroTipo) {
+              mobileFiltroTipo.addEventListener('change', function() {
+                const tipo = this.value;
+                const url = new URL(window.location.href);
+
+                if (tipo) {
+                  url.searchParams.set('tipo_cuenta', tipo);
+                } else {
+                  url.searchParams.delete('tipo_cuenta');
+                }
+
+                window.location.href = url.toString();
+              });
+            }
+
+            // Filtro por cuenta (móvil)
+            const mobileFiltroCuenta = document.getElementById('mobileFiltroCuenta');
+            if (mobileFiltroCuenta) {
+              mobileFiltroCuenta.addEventListener('change', function() {
+                const cuentaId = this.value;
+                const url = new URL(window.location.href);
+
+                if (cuentaId) {
+                  url.searchParams.set('cuenta_id', cuentaId);
+                } else {
+                  url.searchParams.delete('cuenta_id');
+                }
+
+                window.location.href = url.toString();
               });
             }
 
@@ -1308,6 +1846,90 @@ Ingresa ahora por favor y te paso los codigos de activacion`;
               }
             });
           });
+        </script>
+
+        <script>
+          // Sidebar móvil - Script único y definitivo
+          (function() {
+              const sidebar = document.querySelector('.sidebar');
+              const sidebarBackdrop = document.getElementById('sidebarMobileBackdrop');
+              const btnSidebarMobile = document.getElementById('btnSidebarMobile');
+
+              console.log('Inicializando sidebar móvil...');
+              console.log('Elementos encontrados:', {
+                  sidebar: !!sidebar,
+                  backdrop: !!sidebarBackdrop,
+                  button: !!btnSidebarMobile
+              });
+
+              if (!btnSidebarMobile || !sidebar || !sidebarBackdrop) {
+                  console.error('No se encontraron todos los elementos del sidebar');
+                  return;
+              }
+
+              // Toggle sidebar
+              btnSidebarMobile.addEventListener('click', function(e) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  
+                  const isShowing = sidebar.classList.contains('show');
+                  console.log('Toggle sidebar - Estado actual:', isShowing ? 'visible' : 'oculto');
+                  
+                  if (isShowing) {
+                      sidebar.classList.remove('show');
+                      sidebarBackdrop.classList.remove('show');
+                      document.body.style.overflow = '';
+                  } else {
+                      sidebar.classList.add('show');
+                      sidebarBackdrop.classList.add('show');
+                      document.body.style.overflow = 'hidden';
+                  }
+                  
+                  console.log('Nuevo estado:', sidebar.classList.contains('show') ? 'visible' : 'oculto');
+              });
+
+              // Cerrar sidebar al hacer click fuera de él
+              document.addEventListener('click', function(e) {
+                  if (window.innerWidth < 992 && sidebar.classList.contains('show')) {
+                      // Si el click no es en el sidebar ni en el botón de toggle
+                      if (!sidebar.contains(e.target) && !btnSidebarMobile.contains(e.target)) {
+                          console.log('Click fuera del sidebar - cerrando');
+                          sidebar.classList.remove('show');
+                          sidebarBackdrop.classList.remove('show');
+                          document.body.style.overflow = '';
+                      }
+                  }
+              });
+
+              // Cerrar al hacer clic en enlaces (solo móvil)
+              const sidebarLinks = sidebar.querySelectorAll('.nav-link');
+              console.log('Enlaces del sidebar encontrados:', sidebarLinks.length);
+              
+              sidebarLinks.forEach(function(link) {
+                  link.addEventListener('click', function(e) {
+                      if (window.innerWidth < 992) {
+                          console.log('Click en enlace - cerrando sidebar y navegando');
+                          // No prevenir el comportamiento por defecto para permitir navegación
+                          sidebar.classList.remove('show');
+                          sidebarBackdrop.classList.remove('show');
+                          document.body.style.overflow = '';
+                          // Permitir que el enlace navegue normalmente
+                      }
+                  });
+              });
+
+              // Cerrar sidebar cuando se abre cualquier modal de Bootstrap
+              document.addEventListener('show.bs.modal', function() {
+                  console.log('Modal abierto - cerrando sidebar si está visible');
+                  if (sidebar.classList.contains('show')) {
+                      sidebar.classList.remove('show');
+                      sidebarBackdrop.classList.remove('show');
+                      document.body.style.overflow = '';
+                  }
+              });
+
+              console.log('Sidebar móvil inicializado correctamente');
+          })();
         </script>
 
 </body>
