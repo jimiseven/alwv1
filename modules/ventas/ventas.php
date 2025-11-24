@@ -279,7 +279,7 @@ if ($tipoCuentaActual !== '' && !in_array($tipoCuentaActual, $tiposCuenta, true)
                 top: 0;
                 left: 0;
                 right: 0;
-                z-index: 1060;
+                z-index: 1030;
                 background: white;
                 box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
                 height: 60px;
@@ -340,7 +340,7 @@ if ($tipoCuentaActual !== '' && !in_array($tipoCuentaActual, $tiposCuenta, true)
                 right: 0;
                 bottom: 0;
                 background: rgba(0, 0, 0, 0.5);
-                z-index: 999;
+                z-index: 1020;
                 display: none;
                 pointer-events: none !important;
             }
@@ -352,7 +352,7 @@ if ($tipoCuentaActual !== '' && !in_array($tipoCuentaActual, $tiposCuenta, true)
 
             /* Asegurar que el sidebar esté por encima del backdrop */
             .sidebar {
-                z-index: 1000 !important;
+                z-index: 1025 !important;
                 pointer-events: auto !important;
             }
         }
@@ -375,57 +375,50 @@ if ($tipoCuentaActual !== '' && !in_array($tipoCuentaActual, $tiposCuenta, true)
             }
         }
 
-        /* Asegurar que los modales de Bootstrap estén por encima de todo */
-        /* El backdrop debe estar DETRÁS del modal */
+        /* Modales de Bootstrap - Solo z-index, sin pointer-events */
         .modal-backdrop {
             z-index: 1040 !important;
-            pointer-events: none !important;  /* No debe bloquear clics */
-            background-color: rgba(0, 0, 0, 0.5) !important;  /* Semi-transparente */
-        }
-
-        .modal-backdrop.show {
-            opacity: 0.5 !important;  /* Opacidad reducida */
         }
 
         .modal {
             z-index: 1055 !important;
-            pointer-events: none !important;  /* Solo el contenido debe recibir clics */
-        }
-
-        .modal.show {
-            pointer-events: auto !important;
         }
 
         .modal-dialog {
             z-index: 1056 !important;
             position: relative;
-            pointer-events: auto !important;
-            margin: 1.75rem auto;
         }
 
         .modal-content {
             z-index: 1057 !important;
-            position: relative;
-            pointer-events: auto !important;
             background: white !important;
-            border: 1px solid rgba(0,0,0,.2);
-            box-shadow: 0 10px 30px rgba(0,0,0,.8) !important;  /* Sombra más fuerte */
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,.3) !important;
+            opacity: 1 !important;
+        }
+
+        .modal.show {
+            display: block !important;
+            opacity: 1 !important;
+        }
+
+        .modal.show .modal-dialog {
+            opacity: 1 !important;
         }
 
         .modal-header {
-            pointer-events: auto !important;
-            background: white !important;
-            position: relative;
-            z-index: 2;
+            background: white;
             padding: 1.2rem 1.5rem;
             border-bottom: 1px solid #e5e7eb;
         }
 
+        .modal-title {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
         .modal-body {
-            pointer-events: auto !important;
-            background: white !important;
-            position: relative;
-            z-index: 2;
+            background: white;
             padding: 1.5rem;
         }
 
@@ -437,13 +430,39 @@ if ($tipoCuentaActual !== '' && !in_array($tipoCuentaActual, $tiposCuenta, true)
         .modal-body .form-label {
             font-weight: 600;
             color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-body .form-control,
+        .modal-body .form-select {
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            padding: 0.625rem 0.875rem;
+            background: white !important;
+            opacity: 1 !important;
+        }
+
+        .modal-body .form-control:focus,
+        .modal-body .form-select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            outline: none;
+        }
+
+        .modal-body input,
+        .modal-body select,
+        .modal-body textarea {
+            opacity: 1 !important;
+            background-color: white !important;
+            cursor: text !important;
+        }
+
+        .modal-body select {
+            cursor: pointer !important;
         }
 
         .modal-footer {
-            pointer-events: auto !important;
-            background: white !important;
-            position: relative;
-            z-index: 2;
+            background: white;
             display: flex;
             gap: 1rem;
             justify-content: flex-end;
@@ -458,6 +477,8 @@ if ($tipoCuentaActual !== '' && !in_array($tipoCuentaActual, $tiposCuenta, true)
             font-weight: 600;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            pointer-events: auto !important;
+            cursor: pointer !important;
         }
 
         .modal-footer .btn-primary {
@@ -503,12 +524,39 @@ if ($tipoCuentaActual !== '' && !in_array($tipoCuentaActual, $tiposCuenta, true)
             box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
         }
 
+        /* Asegurar que el modal sea completamente interactivo */
+        .modal.show {
+            pointer-events: auto !important;
+        }
+
+        .modal.show .modal-dialog {
+            pointer-events: auto !important;
+        }
+
+        .modal.show .modal-content {
+            pointer-events: auto !important;
+        }
+
+        .modal-body input,
+        .modal-body select,
+        .modal-body textarea,
+        .modal-body .form-control,
+        .modal-body .form-select,
+        .modal-footer .btn {
+            pointer-events: auto !important;
+            cursor: auto !important;
+        }
+
+        .modal-footer .btn {
+            cursor: pointer !important;
+        }
+
         /* Asegurar que el sidebar-backdrop no interfiera con modales */
         .sidebar-mobile-backdrop {
             z-index: 1030 !important;
         }
 
-        /* Cuando hay un modal abierto, ocultar completamente el sidebar-backdrop */
+        /* Cuando hay un modal abierto, ocultar elementos que interfieren */
         body.modal-open .sidebar-mobile-backdrop {
             display: none !important;
             pointer-events: none !important;
@@ -516,10 +564,16 @@ if ($tipoCuentaActual !== '' && !in_array($tipoCuentaActual, $tiposCuenta, true)
             visibility: hidden !important;
         }
 
-        /* Asegurar que el sidebar no interfiera cuando hay modal */
         body.modal-open .sidebar {
             pointer-events: none !important;
+            z-index: 1 !important;
         }
+
+        body.modal-open .mobile-navbar {
+            z-index: 1 !important;
+        }
+
+        /* Sin reglas de pointer-events en modal - Bootstrap lo maneja */
 
         /* Pero permitir clicks en los enlaces del sidebar siempre */
         .sidebar .nav-link {
@@ -812,9 +866,9 @@ if ($tipoCuentaActual !== '' && !in_array($tipoCuentaActual, $tiposCuenta, true)
             </select>
           </div>
           <div class="toolbar-action">
-            <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#nuevaVentaModal">
+            <a href="nueva_venta.php" class="btn btn-primary w-100">
               <i class="bi bi-plus-circle"></i> Nueva venta
-            </button>
+            </a>
           </div>
         </div>
 
@@ -870,9 +924,9 @@ if ($tipoCuentaActual !== '' && !in_array($tipoCuentaActual, $tiposCuenta, true)
               <?php } ?>
             </div>
             <div class="toolbar-action">
-              <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#nuevaVentaModal">
+              <a href="nueva_venta.php" class="btn btn-primary btn-lg">
                 <i class="bi bi-plus-circle"></i> Nueva venta
-              </button>
+              </a>
             </div>
           </div>
         </div>
@@ -920,58 +974,58 @@ if ($tipoCuentaActual !== '' && !in_array($tipoCuentaActual, $tiposCuenta, true)
               </thead>
               <tbody>
                 <?php
-            $filtroCuenta = "";
-            if (isset($_GET['cuenta_id']) && $_GET['cuenta_id'] !== '') {
-                $filtroCuenta = "AND v.cuenta_id = " . intval($_GET['cuenta_id']);
-            }
+           // Filtros por cuenta y tipo (aplicados en SQL)
+           $filtroCuenta = "";
+           if (isset($_GET['cuenta_id']) && $_GET['cuenta_id'] !== '') {
+               $filtroCuenta = " AND v.cuenta_id = " . intval($_GET['cuenta_id']);
+           }
 
-            $filtroTipoCuenta = "";
-            if ($tipoCuentaActual !== '') {
-                $tipoCuentaEscaped = mysqli_real_escape_string($conn, $tipoCuentaActual);
-                $filtroTipoCuenta = "AND c.tipo_cuenta = '" . $tipoCuentaEscaped . "'";
-            }
+           $filtroTipoCuenta = "";
+           if ($tipoCuentaActual !== '') {
+               $tipoCuentaEscaped = mysqli_real_escape_string($conn, $tipoCuentaActual);
+               $filtroTipoCuenta = " AND c.tipo_cuenta = '" . $tipoCuentaEscaped . "'";
+           }
 
-            $ordenDias = isset($_GET['orden_dias']) && $_GET['orden_dias'] === 'asc' ? 'ASC' : 'DESC';
-            
-            $sql = "SELECT 
-                v.id, 
-                v.numero_celular, 
-                v.fecha_inicio, 
-                v.fecha_fin, 
-                v.dias, 
-                v.pago, 
-                v.cuenta_id,
-                c.correo AS cuenta_correo,
-                c.contrasena_gpt,
-                c.tipo_cuenta,
-                DATEDIFF(v.fecha_fin, CURDATE()) AS dias_restantes
-            FROM ventas v
-            INNER JOIN cuentas c ON v.cuenta_id = c.id
-            WHERE 1=1 $filtroCuenta $filtroTipoCuenta";
-            
-            // Filtrar por rol: si no es admin, mostrar solo sus ventas
-            if (!isAdmin()) {
-                $sql .= " AND v.vendedor_id = " . $_SESSION['user_id'];
-            }
-            
-            $sql .= " ORDER BY dias_restantes $ordenDias, v.fecha_inicio DESC";
+           // Filtro por numero de celular (búsqueda)
+           $filtroNumero = "";
+           if (isset($_GET['search_num']) && $_GET['search_num'] !== '') {
+               $searchNumero = mysqli_real_escape_string($conn, $_GET['search_num']);
+               $filtroNumero = " AND v.numero_celular LIKE '%" . $searchNumero . "%'";
+           }
+
+           $ordenDias = isset($_GET['orden_dias']) && $_GET['orden_dias'] === 'asc' ? 'ASC' : 'DESC';
+           
+           $sql = "SELECT 
+               v.id, 
+               v.numero_celular, 
+               v.fecha_inicio, 
+               v.fecha_fin, 
+               v.dias, 
+               v.pago, 
+               v.cuenta_id,
+               c.correo AS cuenta_correo,
+               c.contrasena_gpt,
+               c.tipo_cuenta,
+               DATEDIFF(v.fecha_fin, CURDATE()) AS dias_restantes
+           FROM ventas v
+           INNER JOIN cuentas c ON v.cuenta_id = c.id
+           WHERE 1=1" . $filtroCuenta . $filtroTipoCuenta . $filtroNumero;
+           
+           // Filtrar por rol: si no es admin, mostrar solo sus ventas
+           // PERO: si hay búsqueda por número, mostrar resultados de todos los vendedores
+           if (!isAdmin() && !isset($_GET['search_num'])) {
+               $sql .= " AND v.vendedor_id = " . $_SESSION['user_id'];
+           }
+           
+           $sql .= " ORDER BY dias_restantes $ordenDias, v.fecha_inicio DESC";
 
                 $resultado = mysqli_query($conn, $sql);
 
                 if (mysqli_num_rows($resultado) > 0) {
                   while ($fila = mysqli_fetch_assoc($resultado)) {
                     // Formateo de fechas
-              try {
-                $fechaInicio = new DateTime($fila['fecha_inicio']);
-                $fechaFin = new DateTime($fila['fecha_fin']);
-                
-                if (!$fechaInicio || !$fechaFin) {
-                  throw new Exception('Fecha invalida');
-                }
-              } catch (Exception $e) {
-                error_log("Error al parsear fechas para venta ID {$fila['id']}: " . $e->getMessage());
-                continue; // Saltar esta fila si hay error
-              }
+                    $fechaInicio = new DateTime($fila['fecha_inicio']);
+                    $fechaFin = new DateTime($fila['fecha_fin']);
 
                     $diaInicio = $fechaInicio->format('d');
                     $mesInicio = $meses[(int)$fechaInicio->format('n')];
@@ -1148,81 +1202,7 @@ if ($tipoCuentaActual !== '' && !in_array($tipoCuentaActual, $tiposCuenta, true)
           ?>
         </div>
 
-        <!-- Modal Editar Venta - Nueva Version -->
-        <div class="modal fade" id="editarVentaModal" tabindex="-1" aria-labelledby="editarVentaModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-              <form id="formEditarVenta" autocomplete="off">
-                <div class="modal-header bg-primary text-white">
-                  <h5 class="modal-title" id="editarVentaModalLabel">
-                    <i class="bi bi-pencil-square me-2"></i>Editar Venta
-                  </h5>
-                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                </div>
-                <div class="modal-body">
-                  <input type="hidden" name="id" id="edit-id">
-                  
-                  <div class="row g-3">
-                    <!-- Numero Celular -->
-                    <div class="col-md-6">
-                      <label for="edit-numero_celular" class="form-label">Numero Celular</label>
-                      <input type="text" class="form-control" name="numero_celular" id="edit-numero_celular" 
-                             pattern="[0-9]{7,20}" title="Solo numeros, minimo 7 digitos" required>
-                    </div>
-
-                    <!-- Cuenta -->
-                    <div class="col-md-6">
-                      <label for="edit-cuenta_id" class="form-label">Cuenta</label>
-                      <select class="form-select" name="cuenta_id" id="edit-cuenta_id" required>
-                        <option value="">Seleccionar cuenta...</option>
-                        <?php
-                        $sql_cuentas = "SELECT id, correo FROM cuentas WHERE estado = 'activa' ORDER BY correo";
-                        $res_cuentas = mysqli_query($conn, $sql_cuentas);
-                        while ($cuenta = mysqli_fetch_assoc($res_cuentas)) {
-                          echo "<option value='{$cuenta['id']}'>" . htmlspecialchars($cuenta['correo']) . "</option>";
-                        }
-                        ?>
-                      </select>
-                    </div>
-
-                    <!-- Fechas -->
-                    <div class="col-md-6">
-                      <label for="edit-fecha_inicio" class="form-label">Fecha Inicio</label>
-                      <input type="date" class="form-control" name="fecha_inicio" id="edit-fecha_inicio" required>
-                      <div class="invalid-feedback">Fecha invalida</div>
-                    </div>
-                    <div class="col-md-6">
-                      <label for="edit-fecha_fin" class="form-label">Fecha Fin</label>
-                      <input type="date" class="form-control" name="fecha_fin" id="edit-fecha_fin" required>
-                      <div class="invalid-feedback">Fecha invalida</div>
-                    </div>
-
-                    <!-- Pago -->
-                    <div class="col-md-6">
-                      <label for="edit-pago" class="form-label">Pago (Bs)</label>
-                      <div class="input-group">
-                        <span class="input-group-text">$</span>
-                        <input type="number" step="0.01" min="0" class="form-control" 
-                               name="pago" id="edit-pago" required>
-                      </div>
-                    </div>
-
-                    <!-- Vendedor (oculto) -->
-                    <input type="hidden" name="vendedor_id" id="edit-vendedor_id" value="<?php echo $_SESSION['user_id']; ?>">
-                  </div>
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle me-1"></i> Cancelar
-                  </button>
-                  <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-save me-1"></i> Guardar Cambios
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
+        <!-- Modal eliminado - Usar página editar_venta_form.php -->
 
         <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1230,65 +1210,12 @@ if ($tipoCuentaActual !== '' && !in_array($tipoCuentaActual, $tiposCuenta, true)
           document.body.addEventListener('click', function(e) {
             const btn = e.target.closest('.edit-venta');
             if (btn) {
-              // Validar y cargar datos
-              const fechaInicio = btn.dataset.fecha_inicio;
-              const fechaFin = btn.dataset.fecha_fin;
-              
-              if (!fechaInicio || !fechaFin || 
-                  !fechaInicio.match(/^\d{4}-\d{2}-\d{2}$/) || 
-                  !fechaFin.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                console.error('Error: Fechas invalidas', {fechaInicio, fechaFin});
-                alert('Error: No se pueden cargar los datos de esta venta. Contacte al administrador.');
-                return;
-              }
-
-              // Cargar datos en el formulario
-              document.getElementById('edit-id').value = btn.dataset.id || '';
-              document.getElementById('edit-numero_celular').value = btn.dataset.numero_celular || '';
-              document.getElementById('edit-fecha_inicio').value = fechaInicio;
-              document.getElementById('edit-fecha_fin').value = fechaFin;
-              document.getElementById('edit-pago').value = btn.dataset.pago || '';
-              document.getElementById('edit-cuenta_id').value = btn.dataset.cuenta_id || '';
-              document.getElementById('edit-vendedor_id').value = btn.dataset.vendedor_id || '';
-
-              // Mostrar modal
-              new bootstrap.Modal(document.getElementById('editarVentaModal')).show();
+              // Redirigir a página de edición
+              window.location.href = 'editar_venta_form.php?id=' + btn.dataset.id;
             }
           });
 
-          // Validacion del formulario
-          document.getElementById('formEditarVenta').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Validar fechas
-            const fechaInicio = new Date(this.elements['fecha_inicio'].value);
-            const fechaFin = new Date(this.elements['fecha_fin'].value);
-            
-            if (fechaFin <= fechaInicio) {
-              alert('Error: La fecha fin debe ser posterior a la fecha inicio');
-              return;
-            }
-
-            // Enviar datos
-            const formData = new FormData(this);
-            fetch('editar_venta.php', {
-              method: 'POST',
-              body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-              if (data.success) {
-                // alert('Venta actualizada correctamente');
-                location.reload();
-              } else {
-                alert('Error: ' + (data.error || 'Error desconocido'));
-              }
-            })
-            .catch(error => {
-              console.error('Error:', error);
-              alert('Error al procesar la solicitud');
-            });
-          });
+          }
         });
         </script>
         <script src="<?php echo BASE_URL; ?>assets/js/bootstrap.bundle.min.js"></script>
@@ -1500,329 +1427,192 @@ Ingresa ahora por favor y te paso los codigos de activacion`;
             });
 
           // Guardar cambios edicion - Usando SweetAlert2 para mejor experiencia
-          document.getElementById('formEditarVenta').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            
-            let processingAlert;
-            
-            // Mostrar alerta de procesamiento sin timer
-            processingAlert = Swal.fire({
-              title: 'Procesando...',
-              allowOutsideClick: false,
-              didOpen: () => {
-                Swal.showLoading();
-                
-                // Forzar duración mínima de 3 segundos
-                setTimeout(() => {
-                  if (Swal.isVisible()) {
-                    Swal.close();
-                  }
-                }, 3000);
-              }
-            });
-
-            fetch('editar_venta.php', {
-                method: 'POST',
-                body: formData
-              })
-              .then(res => res.json())
-              .then(data => {
-                Swal.close();
-                if (data.success) {
-                  Swal.fire({
-                    icon: 'success',
-                    title: '¡Éxito!',
-                    text: 'Venta actualizada correctamente',
-                    confirmButtonText: 'Aceptar'
-                  }).then(() => {
-                    window.location.reload();
-                  });
-                } else {
-                  Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Error al actualizar: ' + (data.error || 'Error desconocido')
-                  });
-                }
-              })
-              .catch(error => {
-                Swal.close();
-                console.error('Error:', error);
-                Swal.fire({
-                  icon: 'error',
-                  title: 'Error',
-                  text: 'Error al procesar la solicitud'
-                });
-              });
-          });
-
-            // Busqueda dinamica para ambas vistas
-            function handleSearch(value) {
-              // Desktop
-              document.querySelectorAll('.table tbody tr').forEach(row => {
-                const celular = row.children[1].textContent.toLowerCase();
-                row.style.display = celular.includes(value) ? '' : 'none';
-              });
-              // Movil
-              document.querySelectorAll('.venta-card').forEach(card => {
-                const celular = card.querySelector('.title').textContent.toLowerCase();
-                card.style.display = celular.includes(value) ? '' : 'none';
-              });
-            }
-            document.getElementById('searchInput').addEventListener('input', function() {
-              handleSearch(this.value.toLowerCase());
-            });
-            document.getElementById('mobileSearch').addEventListener('input', function() {
-              handleSearch(this.value.toLowerCase());
-            });
-          });
-        </script>
-        <script>
-          // Busqueda dinamica
-          document.getElementById('searchInput').addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-
-            // Para version desktop
-            document.querySelectorAll('.table tbody tr').forEach(row => {
-              const celular = row.children[2].textContent.toLowerCase();
-              row.style.display = celular.includes(searchTerm) ? '' : 'none';
-            });
-
-            // Para version movil
-            document.querySelectorAll('.venta-card').forEach(card => {
-              const celular = card.querySelector('.title').textContent.toLowerCase();
-              card.style.display = celular.includes(searchTerm) ? 'block' : 'none';
-            });
-          });
-        </script>
-        <!-- Modal Nueva Venta -->
-        <div class="modal fade" id="nuevaVentaModal" tabindex="-1" aria-labelledby="nuevaVentaModalLabel" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <form id="formNuevaVenta" autocomplete="off">
-                <div class="modal-header">
-                  <h5 class="modal-title" id="nuevaVentaModalLabel">Registrar Nueva Venta</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                </div>
-                <div class="modal-body">
-                  <div class="mb-3">
-                    <label for="numero_celular" class="form-label">Numero celular</label>
-                    <input type="text" class="form-control" name="numero_celular" id="numero_celular" required>
-                  </div>
-                  <div class="mb-3">
-                    <label for="cuenta_id" class="form-label">Cuenta</label>
-                    <select class="form-select" name="cuenta_id" id="cuenta_id" required>
-                      <option value="">Selecciona una cuenta...</option>
-                      <?php
-                      $sqlCuentas = "SELECT c.id, c.correo, c.tipo_cuenta, COUNT(v.id) as ventas_count 
-                                   FROM cuentas c 
-                                   LEFT JOIN ventas v ON c.id = v.cuenta_id 
-                                   WHERE c.estado='activa' 
-                                   GROUP BY c.id, c.correo, c.tipo_cuenta 
-                                   ORDER BY ventas_count ASC, c.correo ASC";
-                      $resCuentas = mysqli_query($conn, $sqlCuentas);
-                      
-                      if (!$resCuentas) {
-                        echo "<option value=''>Error al cargar cuentas</option>";
-                      } else {
-                        while ($cuenta = mysqli_fetch_assoc($resCuentas)) {
-                          // Determinar letra según tipo
-                          $tipoLetra = '';
-                          $tipoRaw = strtolower(trim($cuenta['tipo_cuenta'] ?? ''));
-                          
-                          if (strpos($tipoRaw, 'perplex') !== false) {
-                            $tipoLetra = 'p';
-                          } elseif (strpos($tipoRaw, 'gemini') !== false) {
-                            $tipoLetra = 'g';
-                          } else {
-                            $tipoLetra = 'c'; // ChatGPT por defecto
-                          }
-                          
-                          echo "<option value='{$cuenta['id']}'>". 
-                               $tipoLetra . " " .
-                               htmlspecialchars($cuenta['correo']) . 
-                               " (" . $cuenta['ventas_count'] . " ventas)</option>";
-                        }
-                      }
-                      ?>
-                    </select>
-                  </div>
-                  <div class="row">
-                    <div class="col-6 mb-3">
-                      <label for="fecha_inicio" class="form-label">Fecha inicio</label>
-                      <input type="date" class="form-control" name="fecha_inicio" id="fecha_inicio" required>
-                    </div>
-                    <div class="col-6 mb-3">
-                      <label for="duracion" class="form-label">Duracion</label>
-                      <select class="form-select" id="duracion" required>
-                        <option value="30">30 dias</option>
-                        <option value="60">60 dias</option>
-                        <option value="90">90 dias</option>
-                      </select>
-                    </div>
-                  </div>
-                  <input type="hidden" name="fecha_fin" id="fecha_fin">
-                  <div class="mb-3">
-                    <label for="pago" class="form-label">Pago</label>
-                    <input type="number" step="0.01" class="form-control" name="pago" id="pago" required>
-                  </div>
-                  <input type="hidden" name="vendedor_id" value="<?php echo $_SESSION['user_id']; ?>">
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                  <button type="submit" class="btn btn-primary">Guardar</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-
-        <script>
-          // Calcular fecha fin automaticamente
-          document.addEventListener('DOMContentLoaded', function() {
-            const fechaInicio = document.getElementById('fecha_inicio');
-            const duracion = document.getElementById('duracion');
-            const fechaFin = document.getElementById('fecha_fin');
-            
-            function calcularFechaFin() {
-              if (fechaInicio.value) {
-                const fecha = new Date(fechaInicio.value);
-                fecha.setDate(fecha.getDate() + parseInt(duracion.value));
-                fechaFin.value = fecha.toISOString().split('T')[0];
-              }
-            }
-            
-            fechaInicio.addEventListener('change', calcularFechaFin);
-            duracion.addEventListener('change', calcularFechaFin);
-            
-            // Calcular fecha inicial si hay valores
-            if (fechaInicio.value) {
-              calcularFechaFin();
-            }
-          });
-
-          document.getElementById('formNuevaVenta').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const form = this;
-            const formData = new FormData(form);
-
-            fetch('guardar_venta.php', {
-                method: 'POST',
-                body: formData
-              })
-              .then(res => res.json())
-              .then(response => {
-                if (response.success) {
-                  // Cerrar modal
-                  const modal = bootstrap.Modal.getInstance(document.getElementById('nuevaVentaModal'));
-                  if (modal) modal.hide();
-
-                  // Intentar copiar el mensaje predeterminado al portapapeles
-                  const texto = response.clipboardText || '';
-                  if (texto) {
-                    navigator.clipboard.writeText(texto)
-                      .then(() => {
-                        const alertDiv = document.createElement('div');
-                        alertDiv.className = 'alert alert-warning alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
-                        alertDiv.style.zIndex = '9999';
-                        alertDiv.role = 'alert';
-                        alertDiv.innerHTML = `
-                          <strong>Mensaje copiado al portapapeles</strong>
-                          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        `;
-                        document.body.appendChild(alertDiv);
-                        setTimeout(() => {
-                          const bsAlert = new bootstrap.Alert(alertDiv);
-                          bsAlert.close();
-                        }, 3000);
-                      })
-                      .catch(() => {
-                        // Silencioso: si falla el copiado, igual continuamos con el éxito
-                      });
-                  }
-
-                  // Mostrar aviso no intrusivo y recargar sin pedir confirmación
-                  const alertDiv2 = document.createElement('div');
-                  alertDiv2.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
-                  alertDiv2.style.zIndex = '9999';
-                  alertDiv2.role = 'alert';
-                  alertDiv2.innerHTML = `
-                    <strong>Venta guardada - Mensaje copiado</strong>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                  `;
-                  document.body.appendChild(alertDiv2);
-
+          const formEditarVenta = document.getElementById('formEditarVenta');
+          if (formEditarVenta) {
+            formEditarVenta.addEventListener('submit', function(e) {
+              e.preventDefault();
+              const formData = new FormData(this);
+              
+              let processingAlert;
+              
+              // Mostrar alerta de procesamiento sin timer
+              processingAlert = Swal.fire({
+                title: 'Procesando...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                  Swal.showLoading();
+                  
+                  // Forzar duración mínima de 3 segundos
                   setTimeout(() => {
-                    try {
-                      const bsAlert2 = new bootstrap.Alert(alertDiv2);
-                      bsAlert2.close();
-                    } catch (e) {}
+                    if (Swal.isVisible()) {
+                      Swal.close();
+                    }
                   }, 3000);
+                }
+              });
 
-                  // Recargar para actualizar la tabla sin interacción adicional
-                  setTimeout(() => {
-                    location.reload();
-                  }, 800);
-                } else {
+              fetch('editar_venta.php', {
+                  method: 'POST',
+                  body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                  Swal.close();
+                  if (data.success) {
+                    Swal.fire({
+                      icon: 'success',
+                      title: '¡Éxito!',
+                      text: 'Venta actualizada correctamente',
+                      confirmButtonText: 'Aceptar'
+                    }).then(() => {
+                      window.location.reload();
+                    });
+                  } else {
+                    Swal.fire({
+                      icon: 'error',
+                      title: 'Error',
+                      text: 'Error al actualizar: ' + (data.error || 'Error desconocido')
+                    });
+                  }
+                })
+                .catch(error => {
+                  Swal.close();
+                  console.error('Error:', error);
                   Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: response.message || 'Error al guardar la venta'
+                    text: 'Error al procesar la solicitud'
                   });
-                }
-              })
-              .catch(() => {
-                Swal.fire({
-                  icon: 'error',
-                  title: 'Error',
-                  text: 'Error en la conexion o al procesar la solicitud'
                 });
-              });
-          });
+            });
+          }
+
+          // Nueva búsqueda por numero_celular basada en URL (search_num)
+          const urlGlobal = new URL(window.location.href);
+          const currentSearch = urlGlobal.searchParams.get('search_num') || '';
+
+          // Desktop: input de búsqueda
+          const desktopSearchInput = document.getElementById('searchInput');
+          if (desktopSearchInput) {
+            // Mostrar el valor actual si existe en la URL
+            desktopSearchInput.value = currentSearch;
+
+            // Búsqueda dinámica: se ejecuta mientras escribes
+            let searchTimeout;
+            desktopSearchInput.addEventListener('input', function() {
+              clearTimeout(searchTimeout);
+              
+              // Esperar 300ms después de que el usuario deje de escribir
+              searchTimeout = setTimeout(() => {
+                const url = new URL(window.location.href);
+                const value = this.value.trim();
+
+                if (value) {
+                  url.searchParams.set('search_num', value);
+                } else {
+                  url.searchParams.delete('search_num');
+                }
+
+                // Al buscar por número, ignorar filtros de cuenta/tipo
+                url.searchParams.delete('cuenta_id');
+                url.searchParams.delete('tipo_cuenta');
+
+                window.location.href = url.toString();
+              }, 300);
+            });
+
+            // Mantener el Enter por si acaso
+            desktopSearchInput.addEventListener('keypress', function(e) {
+              if (e.key === 'Enter') {
+                clearTimeout(searchTimeout);
+                const url = new URL(window.location.href);
+                const value = this.value.trim();
+
+                if (value) {
+                  url.searchParams.set('search_num', value);
+                } else {
+                  url.searchParams.delete('search_num');
+                }
+
+                url.searchParams.delete('cuenta_id');
+                url.searchParams.delete('tipo_cuenta');
+
+                window.location.href = url.toString();
+              }
+            });
+          }
+
+          const clearSearchInputBtn = document.getElementById('clearSearchInput');
+          if (clearSearchInputBtn) {
+            clearSearchInputBtn.addEventListener('click', function() {
+              const url = new URL(window.location.href);
+              url.searchParams.delete('search_num');
+              window.location.href = url.toString();
+            });
+          }
+
+          // Móvil: input de búsqueda
+          const mobileSearchInput = document.getElementById('mobileSearch');
+          if (mobileSearchInput) {
+            mobileSearchInput.value = currentSearch;
+
+            // Búsqueda dinámica: se ejecuta mientras escribes
+            let mobileSearchTimeout;
+            mobileSearchInput.addEventListener('input', function() {
+              clearTimeout(mobileSearchTimeout);
+              
+              // Esperar 300ms después de que el usuario deje de escribir
+              mobileSearchTimeout = setTimeout(() => {
+                const url = new URL(window.location.href);
+                const value = this.value.trim();
+
+                if (value) {
+                  url.searchParams.set('search_num', value);
+                } else {
+                  url.searchParams.delete('search_num');
+                }
+
+                // Al buscar por número, ignorar filtros de cuenta/tipo
+                url.searchParams.delete('cuenta_id');
+                url.searchParams.delete('tipo_cuenta');
+
+                window.location.href = url.toString();
+              }, 300);
+            });
+
+            // Mantener el Enter por si acaso
+            mobileSearchInput.addEventListener('keypress', function(e) {
+              if (e.key === 'Enter') {
+                clearTimeout(mobileSearchTimeout);
+                const url = new URL(window.location.href);
+                const value = this.value.trim();
+
+                if (value) {
+                  url.searchParams.set('search_num', value);
+                } else {
+                  url.searchParams.delete('search_num');
+                }
+
+                url.searchParams.delete('cuenta_id');
+                url.searchParams.delete('tipo_cuenta');
+
+                window.location.href = url.toString();
+              }
+            });
+          }
+
+          const clearMobileSearchBtn = document.getElementById('clearMobileSearchInput');
+          if (clearMobileSearchBtn) {
+            clearMobileSearchBtn.addEventListener('click', function() {
+              const url = new URL(window.location.href);
+              url.searchParams.delete('search_num');
+              window.location.href = url.toString();
+            });
+          }
+
+          })
         </script>
-        <script>
-          document.addEventListener('DOMContentLoaded', function() {
-            // Funcion de busqueda unificada
-            function handleSearch(searchTerm) {
-              const term = searchTerm.toLowerCase().trim();
-
-              // Filtrar tabla desktop
-              document.querySelectorAll('.table tbody tr').forEach(row => {
-                const celular = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
-                row.style.display = celular.includes(term) ? '' : 'none';
-              });
-
-              // Filtrar cards moviles (version actualizada)
-              document.querySelectorAll('.venta-card-custom').forEach(card => {
-                const celular = card.querySelector('.text-start').textContent.toLowerCase(); // Cambiado a .text-start
-                card.style.display = celular.includes(term) ? 'block' : 'none';
-              });
-            }
-
-            // Eventos de busqueda
-            document.getElementById('searchInput').addEventListener('input', function() {
-              handleSearch(this.value);
-            });
-
-            document.getElementById('mobileSearch').addEventListener('input', function() {
-              handleSearch(this.value);
-            });
-
-            // Botones para limpiar busqueda
-            document.getElementById('clearSearchInput').addEventListener('click', function() {
-              document.getElementById('searchInput').value = '';
-              handleSearch('');
-              document.getElementById('searchInput').focus();
-            });
-
-            document.getElementById('clearMobileSearchInput').addEventListener('click', function() {
-              document.getElementById('mobileSearch').value = '';
-              handleSearch('');
-              document.getElementById('mobileSearch').focus();
-            });
-          });
-        </script>
+        <!-- Modal eliminado - ahora se usa nueva_venta.php -->
 
         <script>
           document.addEventListener('DOMContentLoaded', function() {
@@ -1839,28 +1629,8 @@ Ingresa ahora por favor y te paso los codigos de activacion`;
                   vendedor: btn.dataset.vendedor_id
                 });
 
-                // Validar fechas antes de asignar
-                const fechaInicio = btn.dataset.fecha_inicio || '';
-                const fechaFin = btn.dataset.fecha_fin || '';
-                
-                if (!fechaInicio.match(/^\d{4}-\d{2}-\d{2}$/) || !fechaFin.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                  console.error('Formato de fecha invalido:', {fechaInicio, fechaFin});
-                  alert('Error: Formato de fecha invalido. Contacte al administrador.');
-                  return;
-                }
-
-                // Rellenar campos del modal
-                document.getElementById('edit-id').value = btn.dataset.id || '';
-                document.getElementById('edit-numero_celular').value = btn.dataset.numero_celular || '';
-                document.getElementById('edit-fecha_inicio').value = fechaInicio;
-                document.getElementById('edit-fecha_fin').value = fechaFin;
-                document.getElementById('edit-pago').value = btn.dataset.pago || '';
-                document.getElementById('edit-cuenta_id').value = btn.dataset.cuenta_id || '';
-                document.getElementById('edit-vendedor_id').value = btn.dataset.vendedor_id || '';
-
-                // Mostrar el modal de edicion
-                const modal = new bootstrap.Modal(document.getElementById('editarVentaModal'));
-                modal.show();
+                // Redirigir a página de edición
+                window.location.href = 'editar_venta_form.php?id=' + btn.dataset.id;
               }
             });
           });
