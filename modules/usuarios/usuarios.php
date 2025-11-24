@@ -326,9 +326,16 @@ requireAdmin(); // Solo administradores pueden gestionar usuarios
                                                 data-activo='{$usuario['activo']}'>
                                                 <i class='bi bi-pencil-fill'></i>
                                             </button>
-                                            <button class='btn btn-sm btn-danger delete-usuario' 
+                                            <button class='btn btn-sm btn-danger toggle-estado-usuario me-1' 
                                                 data-id='{$usuario['id']}'
-                                                data-usuario='" . htmlspecialchars($usuario['usuario']) . "'>
+                                                data-usuario='" . htmlspecialchars($usuario['usuario']) . "'
+                                                data-activo='{$usuario['activo']}'>
+                                                <i class='bi bi-" . ($usuario['activo'] ? 'x-circle-fill' : 'check-circle-fill') . "'></i>
+                                            </button>
+                                            <button class='btn btn-sm btn-outline-danger delete-usuario-confirm' 
+                                                data-id='{$usuario['id']}'
+                                                data-usuario='" . htmlspecialchars($usuario['usuario']) . "'
+                                                title='Eliminar permanentemente'>
                                                 <i class='bi bi-trash-fill'></i>
                                             </button>
                                         </td>
@@ -430,6 +437,41 @@ requireAdmin(); // Solo administradores pueden gestionar usuarios
         </div>
     </div>
 
+    <!-- Modal Confirmar Eliminación -->
+    <div class="modal fade" id="eliminarUsuarioModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2"></i>Confirmar Eliminación Permanente</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>¡Advertencia!</strong> Esta acción es irreversible. Se eliminará el usuario y TODAS sus ventas asociadas.
+                    </div>
+                    
+                    <h6 class="mb-3">Usuario a eliminar: <strong id="delete-usuario-name"></strong></h6>
+                    
+                    <div id="ventas-info">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                            <p class="mt-2">Cargando información de ventas...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmar-eliminar-btn" disabled>
+                        <i class="bi bi-trash-fill me-2"></i>Eliminar Permanentemente
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="<?php echo BASE_URL; ?>assets/js/bootstrap.bundle.min.js"></script>
     <script>
         // Sidebar móvil
@@ -527,21 +569,167 @@ requireAdmin(); // Solo administradores pueden gestionar usuarios
                 });
             });
 
-            // Eliminar usuario
-            document.querySelectorAll('.delete-usuario').forEach(btn => {
+            // Mostrar modal de eliminación con información de ventas
+            let usuarioIdToDelete = null;
+            document.querySelectorAll('.delete-usuario-confirm').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    if (confirm('¿Estás seguro de eliminar al usuario ' + this.dataset.usuario + '?')) {
+                    const usuarioId = this.dataset.id;
+                    const usuarioNombre = this.dataset.usuario;
+                    usuarioIdToDelete = usuarioId;
+                    
+                    // Actualizar nombre en el modal
+                    document.getElementById('delete-usuario-name').textContent = usuarioNombre;
+                    
+                    // Resetear contenido de ventas
+                    document.getElementById('ventas-info').innerHTML = `
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                            <p class="mt-2">Cargando información de ventas...</p>
+                        </div>
+                    `;
+                    
+                    // Deshabilitar botón de eliminar
+                    document.getElementById('confirmar-eliminar-btn').disabled = true;
+                    
+                    // Mostrar modal
+                    new bootstrap.Modal(document.getElementById('eliminarUsuarioModal')).show();
+                    
+                    // Cargar información de ventas
+                    fetch('<?php echo BASE_URL; ?>api/usuarios/get_ventas.php?id=' + usuarioId)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                mostrarVentas(data.ventas, data.total_ventas, data.total_ingresos);
+                            } else {
+                                document.getElementById('ventas-info').innerHTML = `
+                                    <div class="alert alert-danger">
+                                        <i class="bi bi-x-circle me-2"></i>Error al cargar ventas: ${data.message}
+                                    </div>
+                                `;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            document.getElementById('ventas-info').innerHTML = `
+                                <div class="alert alert-danger">
+                                    <i class="bi bi-x-circle me-2"></i>Error al cargar información de ventas
+                                </div>
+                            `;
+                        });
+                });
+            });
+
+            function mostrarVentas(ventas, totalVentas, totalIngresos) {
+                let html = '';
+                
+                if (ventas.length === 0) {
+                    html = `
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Este usuario no tiene ventas registradas. Se puede eliminar sin afectar datos.
+                        </div>
+                    `;
+                } else {
+                    html = `
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>Este usuario tiene ${totalVentas} venta(s) registrada(s)</strong> por un total de <strong>$${totalIngresos}</strong>
+                        </div>
+                        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                            <table class="table table-sm table-striped">
+                                <thead class="sticky-top bg-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Cliente</th>
+                                        <th>Cuenta</th>
+                                        <th>Fecha Inicio</th>
+                                        <th>Fecha Fin</th>
+                                        <th>Pago</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    
+                    ventas.forEach(venta => {
+                        html += `
+                            <tr>
+                                <td>${venta.id}</td>
+                                <td>${venta.numero_celular}</td>
+                                <td>${venta.cuenta_correo}</td>
+                                <td>${venta.fecha_inicio}</td>
+                                <td>${venta.fecha_fin}</td>
+                                <td><strong>$${venta.pago}</strong></td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+                
+                document.getElementById('ventas-info').innerHTML = html;
+                // Habilitar botón de eliminar
+                document.getElementById('confirmar-eliminar-btn').disabled = false;
+            }
+
+            // Confirmar eliminación
+            document.getElementById('confirmar-eliminar-btn').addEventListener('click', function() {
+                if (!usuarioIdToDelete) return;
+                
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Eliminando...';
+                
+                const formData = new FormData();
+                formData.append('id', usuarioIdToDelete);
+                
+                fetch('<?php echo BASE_URL; ?>api/usuarios/eliminar.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Usuario y sus ventas eliminados exitosamente');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                        this.disabled = false;
+                        this.innerHTML = '<i class="bi bi-trash-fill me-2"></i>Eliminar Permanentemente';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al eliminar usuario');
+                    this.disabled = false;
+                    this.innerHTML = '<i class="bi bi-trash-fill me-2"></i>Eliminar Permanentemente';
+                });
+            });
+
+            // Activar/Desactivar usuario
+            document.querySelectorAll('.toggle-estado-usuario').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const activo = this.dataset.activo === '1';
+                    const accion = activo ? 'desactivar' : 'activar';
+                    const nuevoEstado = activo ? 0 : 1;
+                    
+                    if (confirm('¿Estás seguro de ' + accion + ' al usuario ' + this.dataset.usuario + '?')) {
                         const formData = new FormData();
                         formData.append('id', this.dataset.id);
+                        formData.append('activo', nuevoEstado);
 
-                        fetch('<?php echo BASE_URL; ?>api/usuarios/eliminar.php', {
+                        fetch('<?php echo BASE_URL; ?>api/usuarios/toggle_estado.php', {
                             method: 'POST',
                             body: formData
                         })
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                alert('Usuario eliminado exitosamente');
+                                alert('Usuario ' + (nuevoEstado ? 'activado' : 'desactivado') + ' exitosamente');
                                 location.reload();
                             } else {
                                 alert('Error: ' + data.message);
@@ -549,7 +737,7 @@ requireAdmin(); // Solo administradores pueden gestionar usuarios
                         })
                         .catch(error => {
                             console.error('Error:', error);
-                            alert('Error al eliminar usuario');
+                            alert('Error al cambiar estado del usuario');
                         });
                     }
                 });

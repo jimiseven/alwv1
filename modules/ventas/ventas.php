@@ -1615,17 +1615,35 @@ Ingresa ahora por favor y te paso los codigos de activacion`;
                     <select class="form-select" name="cuenta_id" id="cuenta_id" required>
                       <option value="">Selecciona una cuenta...</option>
                       <?php
-                      $sqlCuentas = "SELECT c.id, c.correo, COUNT(v.id) as ventas_count 
+                      $sqlCuentas = "SELECT c.id, c.correo, c.tipo_cuenta, COUNT(v.id) as ventas_count 
                                    FROM cuentas c 
                                    LEFT JOIN ventas v ON c.id = v.cuenta_id 
                                    WHERE c.estado='activa' 
-                                   GROUP BY c.id 
-                                   ORDER BY c.correo";
+                                   GROUP BY c.id, c.correo, c.tipo_cuenta 
+                                   ORDER BY ventas_count ASC, c.correo ASC";
                       $resCuentas = mysqli_query($conn, $sqlCuentas);
-                      while ($cuenta = mysqli_fetch_assoc($resCuentas)) {
-                        echo "<option value='{$cuenta['id']}'>" . 
-                             htmlspecialchars($cuenta['correo']) . 
-                             " (" . $cuenta['ventas_count'] . " ventas)</option>";
+                      
+                      if (!$resCuentas) {
+                        echo "<option value=''>Error al cargar cuentas</option>";
+                      } else {
+                        while ($cuenta = mysqli_fetch_assoc($resCuentas)) {
+                          // Determinar letra según tipo
+                          $tipoLetra = '';
+                          $tipoRaw = strtolower(trim($cuenta['tipo_cuenta'] ?? ''));
+                          
+                          if (strpos($tipoRaw, 'perplex') !== false) {
+                            $tipoLetra = 'p';
+                          } elseif (strpos($tipoRaw, 'gemini') !== false) {
+                            $tipoLetra = 'g';
+                          } else {
+                            $tipoLetra = 'c'; // ChatGPT por defecto
+                          }
+                          
+                          echo "<option value='{$cuenta['id']}'>". 
+                               $tipoLetra . " " .
+                               htmlspecialchars($cuenta['correo']) . 
+                               " (" . $cuenta['ventas_count'] . " ventas)</option>";
+                        }
                       }
                       ?>
                     </select>

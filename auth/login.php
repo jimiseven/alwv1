@@ -29,19 +29,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 mysqli_stmt_bind_result($stmt, $id, $usuario, $hashed_password, $activo, $rol);
                 mysqli_stmt_fetch($stmt);
                 
-                if ($activo && password_verify($password, $hashed_password)) {
-                    // Autenticación exitosa
-                    $_SESSION['user_id'] = $id;
-                    $_SESSION['username'] = $usuario;
-                    $_SESSION['user_rol'] = $rol;
-                    
-                    // Regenerar ID de sesión
-                    session_regenerate_id(true);
-                    
-                    header("Location: " . BASE_URL . "dashboard.php");
-                    exit;
+                // Verificar contraseña primero
+                if (password_verify($password, $hashed_password)) {
+                    // Contraseña correcta, verificar si está activo
+                    if ($activo) {
+                        // Autenticación exitosa
+                        $_SESSION['user_id'] = $id;
+                        $_SESSION['username'] = $usuario;
+                        $_SESSION['user_rol'] = $rol;
+                        
+                        // Regenerar ID de sesión
+                        session_regenerate_id(true);
+                        
+                        header("Location: " . BASE_URL . "dashboard.php");
+                        exit;
+                    } else {
+                        // Usuario existe pero está inactivo
+                        $_SESSION['error'] = "Tu cuenta está inactiva. Contacta al administrador para reactivarla.";
+                    }
                 } else {
-                    $_SESSION['error'] = "Credenciales inválidas o cuenta inactiva";
+                    // Contraseña incorrecta
+                    $_SESSION['error'] = "Usuario o contraseña incorrectos";
                 }
             } else {
                 $_SESSION['error'] = "Usuario no encontrado";
@@ -60,8 +68,10 @@ mysqli_close($conn);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Login - Sistema ALW</title>
     <link href="<?= BASE_URL ?>assets/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="<?= BASE_URL ?>assets/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
     <div class="container mt-5">
@@ -73,7 +83,11 @@ mysqli_close($conn);
                     </div>
                     <div class="card-body">
                         <?php if (isset($_SESSION['error'])): ?>
-                            <div class="alert alert-danger"><?= $_SESSION['error'] ?></div>
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <strong><?= $_SESSION['error'] ?></strong>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
                             <?php unset($_SESSION['error']); ?>
                         <?php endif; ?>
                         
