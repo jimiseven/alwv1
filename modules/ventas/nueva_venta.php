@@ -212,6 +212,28 @@ $resCuentas = mysqli_query($conn, $sqlCuentas);
             .form-actions {
                 flex-direction: column-reverse;
             }
+
+            /* Mejorar vista de botones de tipo de cuenta en móvil */
+            .tipo-cuenta-card {
+                min-height: 70px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .tipo-cuenta-card .card-body {
+                padding: 0.75rem 0.5rem !important;
+            }
+
+            .tipo-cuenta-card .fw-bold {
+                font-size: 1.1rem;
+                margin-bottom: 0.25rem;
+            }
+
+            .tipo-cuenta-card small {
+                font-size: 0.75rem;
+                line-height: 1.2;
+            }
         }
     </style>
 </head>
@@ -226,11 +248,49 @@ $resCuentas = mysqli_query($conn, $sqlCuentas);
             <form id="formNuevaVenta" autocomplete="off">
                 <div class="form-group">
                     <label for="numero_celular" class="form-label">Número celular</label>
-                    <input type="text" class="form-control" name="numero_celular" id="numero_celular" required autofocus placeholder="Ej: 555-1234">
+                    <input type="text" class="form-control" name="numero_celular" id="numero_celular" required autofocus placeholder="Ej: 70000000">
                 </div>
 
                     <div class="form-group">
-                        <label for="cuenta_id" class="form-label">Cuenta</label>
+                        <label class="form-label">Tipo de cuenta</label>
+                        <div class="tipo-cuenta-filtros mb-3">
+                            <div class="row g-2 justify-content-center">
+                                <div class="col-4">
+                                    <div class="tipo-cuenta-option" data-tipo="c">
+                                        <div class="card text-center tipo-cuenta-card h-100" style="cursor: pointer;">
+                                            <div class="card-body p-2">
+                                                <div class="fw-bold text-primary">(C)</div>
+                                                <small class="text-muted">ChatGPT Plus</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="tipo-cuenta-option" data-tipo="p">
+                                        <div class="card text-center tipo-cuenta-card h-100" style="cursor: pointer;">
+                                            <div class="card-body p-2">
+                                                <div class="fw-bold text-primary">(P)</div>
+                                                <small class="text-muted">Perplexity Pro</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="tipo-cuenta-option" data-tipo="g">
+                                        <div class="card text-center tipo-cuenta-card h-100" style="cursor: pointer;">
+                                            <div class="card-body p-2">
+                                                <div class="fw-bold text-primary">(G)</div>
+                                                <small class="text-muted">Gemini</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="cuenta-select-group" style="display: none;">
+                        <label for="cuenta_id" class="form-label">Seleccionar cuenta</label>
                         <select class="form-select" name="cuenta_id" id="cuenta_id" required>
                             <option value="">Selecciona una cuenta...</option>
                             <?php
@@ -248,7 +308,6 @@ $resCuentas = mysqli_query($conn, $sqlCuentas);
                                     }
                                     
                                     echo "<option value='{$cuenta['id']}' data-tipo='{$tipoLetra}' data-email='" . htmlspecialchars($cuenta['correo']) . "' data-ventas='{$cuenta['ventas_count']}'>". 
-                                         $tipoLetra . " " .
                                          htmlspecialchars($cuenta['correo']) . 
                                          " (" . $cuenta['ventas_count'] . " ventas)</option>";
                                 }
@@ -324,6 +383,52 @@ $resCuentas = mysqli_query($conn, $sqlCuentas);
             
             fechaInicio.addEventListener('change', calcularFechaFin);
             duracion.addEventListener('change', calcularFechaFin);
+
+            // Filtro por tipo de cuenta
+            const tipoCuentaOptions = document.querySelectorAll('.tipo-cuenta-option');
+            const cuentaSelectGroup = document.getElementById('cuenta-select-group');
+            const cuentaSelect = document.getElementById('cuenta_id');
+            let tipoSeleccionado = null;
+
+            tipoCuentaOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const tipo = this.getAttribute('data-tipo');
+                    
+                    // Remover selección anterior
+                    tipoCuentaOptions.forEach(opt => {
+                        opt.querySelector('.tipo-cuenta-card').classList.remove('border-primary', 'bg-light');
+                    });
+                    
+                    // Agregar selección actual
+                    this.querySelector('.tipo-cuenta-card').classList.add('border-primary', 'bg-light');
+                    
+                    // Mostrar selector de cuentas
+                    cuentaSelectGroup.style.display = 'block';
+                    tipoSeleccionado = tipo;
+                    
+                    // Filtrar cuentas por tipo
+                    filtrarCuentasPorTipo(tipo);
+                });
+            });
+
+            function filtrarCuentasPorTipo(tipo) {
+                // Ocultar todas las opciones primero
+                const opciones = cuentaSelect.querySelectorAll('option');
+                opciones.forEach(opcion => {
+                    if (opcion.value !== '') {
+                        opcion.style.display = 'none';
+                    }
+                });
+                
+                // Mostrar solo las del tipo seleccionado
+                const opcionesTipo = cuentaSelect.querySelectorAll(`option[data-tipo="${tipo}"]`);
+                opcionesTipo.forEach(opcion => {
+                    opcion.style.display = 'block';
+                });
+                
+                // Resetear selección
+                cuentaSelect.value = '';
+            }
 
             // Enviar formulario
             document.getElementById('formNuevaVenta').addEventListener('submit', function(e) {
