@@ -1,22 +1,23 @@
-name: CI
-
-on:
+name: 🚀 Deploy website on push
+on: 
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches:
+      - main  # Importante: solo desplegar cuando se sube a main
 
 jobs:
-  build:
+  web-deploy:
+    name: 🎉 Deploy
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v3
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v4
 
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+      - name: 📂 Sync files
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          # --- DATOS DE TU SERVIDOR (Puedes escribirlos aquí o usar Secrets) ---
+          server: ftp.tudominio.com      # CAMBIA ESTO por tu servidor FTP
+          username: ${{ secrets.ftp_username }}       # CAMBIA ESTO por tu usuario
+          password: ${{ secrets.ftp_password }} 
+          server-dir: /public_html/  # CAMBIA ESTO por el directorio en tu servidor
+          # ---------------------------------------------------------------------
