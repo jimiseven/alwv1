@@ -28,9 +28,13 @@ $sql_vendedores = "SELECT
                    v.usuario,
                    COUNT(ven.id) as total_ventas,
                    SUM(ven.pago) as total_ingresos,
-                   COUNT(DISTINCT ven.numero_celular) as clientes_unicos
+                   COUNT(DISTINCT ven.numero_celular) as clientes_unicos,
+                   SUM(CASE WHEN c.tipo_cuenta LIKE '%perplex%' THEN 1 ELSE 0 END) as ventas_p,
+                   SUM(CASE WHEN c.tipo_cuenta LIKE '%gemini%' THEN 1 ELSE 0 END) as ventas_g,
+                   SUM(CASE WHEN c.tipo_cuenta NOT LIKE '%perplex%' AND c.tipo_cuenta NOT LIKE '%gemini%' THEN 1 ELSE 0 END) as ventas_c
                    FROM vendedores v
                    LEFT JOIN ventas ven ON v.id = ven.vendedor_id
+                   LEFT JOIN cuentas c ON ven.cuenta_id = c.id
                    GROUP BY v.id, v.usuario
                    ORDER BY total_ingresos DESC";
 $resultado_vendedores = mysqli_query($conn, $sql_vendedores);
@@ -409,6 +413,9 @@ $resultado_vendedores = mysqli_query($conn, $sql_vendedores);
                                 <th>Total Ventas</th>
                                 <th>Ingresos</th>
                                 <th>Clientes Únicos</th>
+                                <th>ChatGPT Plus (C)</th>
+                                <th>Perplexity Pro (P)</th>
+                                <th>Gemini (G)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -420,10 +427,13 @@ $resultado_vendedores = mysqli_query($conn, $sql_vendedores);
                                             <td>{$fila['total_ventas']}</td>
                                             <td>$" . number_format($fila['total_ingresos'] ?? 0, 2) . "</td>
                                             <td>{$fila['clientes_unicos']}</td>
+                                            <td><span class='badge bg-primary'>{$fila['ventas_c']}</span></td>
+                                            <td><span class='badge bg-warning text-dark'>{$fila['ventas_p']}</span></td>
+                                            <td><span class='badge bg-success'>{$fila['ventas_g']}</span></td>
                                           </tr>";
                                 }
                             } else {
-                                echo "<tr><td colspan='4' class='text-center'>No hay datos de vendedores</td></tr>";
+                                echo "<tr><td colspan='7' class='text-center'>No hay datos de vendedores</td></tr>";
                             }
                             ?>
                         </tbody>
