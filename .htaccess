@@ -1,7 +1,10 @@
 Options +FollowSymLinks -MultiViews
 # Turn mod_rewrite on
 RewriteEngine On
-RewriteBase /
+
+# Para cPanel, usar RewriteBase dinámico
+RewriteCond %{REQUEST_URI}::$1 ^(/.+)/(.*)::\2$
+RewriteRule ^(.*) - [E=BASE:%1]
 
 # 1. Si la petición es para un archivo o carpeta real, no hagas nada.
 RewriteCond %{REQUEST_FILENAME} -f [OR]
@@ -15,3 +18,9 @@ RewriteRule ^([^/]+)/?$ $1.php [L]
 # 3. Si pidieron /dashboard/ pero es un archivo, quita la barra final
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^([^/]+)/$ $1 [L,R=301]
+
+# 4. Manejar rutas para archivos PHP sin extensión
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.+)$ $1.php [L]

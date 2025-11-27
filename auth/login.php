@@ -4,7 +4,9 @@ require_once '../config/config.php';
 
 // Verificar si ya está logueado
 if (isset($_SESSION['user_id'])) {
-    header("Location: " . BASE_URL . "dashboard.php");
+    // Usar ruta absoluta para evitar problemas de redirección
+    $redirect_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . BASE_URL . "dashboard.php";
+    header("Location: " . $redirect_url);
     exit;
 }
 
@@ -41,7 +43,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         // Regenerar ID de sesión
                         session_regenerate_id(true);
                         
-                        header("Location: " . BASE_URL . "dashboard.php");
+                        // Usar ruta absoluta para evitar problemas de redirección
+                        $redirect_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . BASE_URL . "dashboard.php";
+                        header("Location: " . $redirect_url);
                         exit;
                     } else {
                         // Usuario existe pero está inactivo

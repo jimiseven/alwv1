@@ -5,7 +5,8 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // Definir la URL base del sitio (ajustar según el entorno)
-define('BASE_URL', '/alwv1/');
+// Para cPanel, usar ruta relativa o detectar automáticamente
+define('BASE_URL', '/');
 
 // Función para verificar si el usuario está logueado
 function isLoggedIn() {
