@@ -1,9 +1,14 @@
 <?php
 // Configuración de conexión a la base de datos para cPanel
-define('DB_SERVER', 'localhost');
-define('DB_USERNAME', 'root');
-define('DB_PASSWORD', '');
-define('DB_NAME', 'v4');
+// define('DB_SERVER', 'localhost');
+// define('DB_USERNAME', 'root');
+// define('DB_PASSWORD', '');
+// define('DB_NAME', 'v4');
+
+define('DB_SERVER', '5.134.116.204');
+define('DB_USERNAME', 'alwsgine_root_alws');
+define('DB_PASSWORD', 'j+k)Q*2A{wc.');
+define('DB_NAME', 'alwsgine_bd_alws');
 
 // Intentar conectar a la base de datos MySQL
 $conn = mysqli_init();
