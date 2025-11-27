@@ -296,10 +296,23 @@ $resCuentas = mysqli_query($conn, $sqlCuentas);
 
         <script src="<?php echo BASE_URL; ?>assets/js/bootstrap.bundle.min.js"></script>
         <script>
+            // Establecer fecha actual de Bolivia/Cochabamba por defecto
+            function obtenerFechaActualBolivia() {
+                const ahora = new Date();
+                // Bolivia está en UTC-4 (America/La_Paz)
+                const offset = -4 * 60; // minutos
+                const fechaBolivia = new Date(ahora.getTime() + offset * 60 * 1000);
+                return fechaBolivia.toISOString().split('T')[0];
+            }
+
             // Calcular fecha fin automáticamente
             const fechaInicio = document.getElementById('fecha_inicio');
             const duracion = document.getElementById('duracion');
             const fechaFin = document.getElementById('fecha_fin');
+            
+            // Establecer fecha actual por defecto
+            fechaInicio.value = obtenerFechaActualBolivia();
+            calcularFechaFin(); // Calcular fecha fin inicial
             
             function calcularFechaFin() {
                 if (fechaInicio.value) {
@@ -338,7 +351,7 @@ $resCuentas = mysqli_query($conn, $sqlCuentas);
                             title: '¡Venta guardada!',
                             text: 'La venta se ha registrado correctamente',
                             showConfirmButton: false,
-                            timer: 1500,
+                            timer: 1000,
                             timerProgressBar: true
                         }).then(() => {
                             window.location.href = 'ventas.php';
