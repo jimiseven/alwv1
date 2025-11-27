@@ -1035,7 +1035,7 @@ if ($tipoCuentaActual !== '' && !in_array($tipoCuentaActual, $tiposCuenta, true)
                     $mesFin = $meses[(int)$fechaFin->format('n')];
                     $anoFin = $fechaFin->format('Y');
 
-                    // Calculo de dias
+                    // Calculo de dias exactos (sin restar días adicionales)
                     $diasContratados = $fechaFin->diff($fechaInicio)->days;
                     $hoy = new DateTime();
                     $diasRestantes = (int)$hoy->diff($fechaFin)->format('%r%a'); // Convertir a entero
@@ -1129,7 +1129,7 @@ if ($tipoCuentaActual !== '' && !in_array($tipoCuentaActual, $tiposCuenta, true)
               $mesFin = $meses[(int)$fechaFin->format('n')];
               $anoFin = $fechaFin->format('Y');
 
-              // Calculos
+              // Calculos exactos (sin restar días adicionales)
               $diasContratados = $fechaFin->diff($fechaInicio)->days;
               $hoy = new DateTime();
               $diasRestantes = (int)$hoy->diff($fechaFin)->format('%r%a');

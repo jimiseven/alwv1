@@ -20,6 +20,11 @@ $resCuentas = mysqli_query($conn, $sqlCuentas);
     <title>Nueva Venta - Sistema ALW</title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- En el <head> -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <!-- Antes de </body> -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         /* Reset y base */
         * {
@@ -299,7 +304,7 @@ $resCuentas = mysqli_query($conn, $sqlCuentas);
             function calcularFechaFin() {
                 if (fechaInicio.value) {
                     const fecha = new Date(fechaInicio.value);
-                    fecha.setDate(fecha.getDate() + parseInt(duracion.value) + 1);
+                    fecha.setDate(fecha.getDate() + parseInt(duracion.value));
                     fechaFin.value = fecha.toISOString().split('T')[0];
                 }
             }
@@ -326,15 +331,42 @@ $resCuentas = mysqli_query($conn, $sqlCuentas);
                         if (response.clipboardText) {
                             navigator.clipboard.writeText(response.clipboardText).catch(() => {});
                         }
-                        window.location.href = 'ventas.php';
+                        
+                        // Mostrar alerta de éxito que desaparece automáticamente
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Venta guardada!',
+                            text: 'La venta se ha registrado correctamente',
+                            showConfirmButton: false,
+                            timer: 1500,
+                            timerProgressBar: true
+                        }).then(() => {
+                            window.location.href = 'ventas.php';
+                        });
                     } else {
-                        alert('Error: ' + (response.message || 'Error al guardar la venta'));
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Error al guardar la venta: ' + (response.message || 'Error desconocido'),
+                            confirmButtonText: 'Aceptar',
+                            customClass: {
+                                confirmButton: 'btn btn-primary'
+                            }
+                        });
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = '<i class="bi bi-check-circle"></i> Guardar Venta';
                     }
                 })
                 .catch(() => {
-                    alert('Error de conexión');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de conexión',
+                        text: 'No se pudo conectar con el servidor',
+                        confirmButtonText: 'Aceptar',
+                        customClass: {
+                            confirmButton: 'btn btn-primary'
+                        }
+                    });
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i class="bi bi-check-circle"></i> Guardar Venta';
                 });

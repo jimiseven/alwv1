@@ -5,8 +5,14 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // Definir la URL base del sitio (ajustar según el entorno)
-// Para cPanel, usar ruta relativa o detectar automáticamente
-define('BASE_URL', '/');
+// Detectar automáticamente si estamos en localhost (XAMPP) o en cPanel
+if ($_SERVER['HTTP_HOST'] == 'localhost' || $_SERVER['HTTP_HOST'] == '127.0.0.1') {
+    // Para XAMPP local
+    define('BASE_URL', '/alwv1/');
+} else {
+    // Para cPanel
+    define('BASE_URL', '/');
+}
 
 // Función para verificar si el usuario está logueado
 function isLoggedIn() {
