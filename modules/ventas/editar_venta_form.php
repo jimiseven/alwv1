@@ -322,6 +322,12 @@ $resCuentas = mysqli_query($conn, $sqlCuentas);
             .then(res => res.json())
             .then(response => {
                 if (response.success) {
+                    const clipboardText = response.clipboardText || '';
+                    if (clipboardText && navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(clipboardText)
+                            .catch(() => {});
+                    }
+
                     window.location.href = 'ventas.php';
                 } else {
                     alert('Error: ' + (response.message || 'Error al guardar la venta'));

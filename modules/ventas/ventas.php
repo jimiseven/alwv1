@@ -661,8 +661,8 @@ if ($tipoCuentaActual !== '' && !in_array($tipoCuentaActual, $tiposCuenta, true)
       background: #ffffff;
       border: none;
       border-radius: 16px;
-      padding: 18px 16px;
-      margin-bottom: 16px;
+      padding: 12px 12px;
+      margin-bottom: 12px;
       position: relative;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       transition: all 0.3s ease;
@@ -686,13 +686,13 @@ if ($tipoCuentaActual !== '' && !in_array($tipoCuentaActual, $tiposCuenta, true)
 
     .venta-card-custom .edit-btn {
       position: absolute;
-      top: 12px;
-      right: 12px;
+      top: 10px;
+      right: 10px;
       z-index: 2;
       background: rgba(255, 255, 255, 0.9);
       border-radius: 50%;
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -700,17 +700,99 @@ if ($tipoCuentaActual !== '' && !in_array($tipoCuentaActual, $tiposCuenta, true)
       transition: all 0.2s ease;
     }
 
+    .venta-card-custom .venta-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      padding-left: 8px;
+      padding-right: 44px; /* espacio para el boton editar */
+    }
+
+    .venta-card-custom .venta-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #1a237e;
+      line-height: 1.1;
+      overflow-wrap: anywhere;
+    }
+
+    .venta-card-custom .venta-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+
+    .venta-card-custom .venta-badges .badge {
+      border-radius: 999px;
+      font-weight: 700;
+      padding: 6px 10px;
+      font-size: 0.78rem;
+    }
+
+    .venta-card-custom .venta-sub {
+      padding-left: 8px;
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 6px;
+      color: #334155;
+      font-size: 0.9rem;
+    }
+
+    .venta-card-custom .venta-sub .line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .venta-card-custom .venta-sub .line i {
+      color: #4e73ff;
+      min-width: 18px;
+    }
+
+    .venta-card-custom .venta-sub .truncate {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .venta-card-custom details.venta-more {
+      margin-top: 10px;
+      padding-left: 8px;
+    }
+
+    .venta-card-custom details.venta-more > summary {
+      list-style: none;
+      cursor: pointer;
+      user-select: none;
+      font-weight: 700;
+      color: #4e73ff;
+    }
+
+    .venta-card-custom details.venta-more > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .venta-card-custom .venta-more-body {
+      margin-top: 10px;
+      background: #f8faff;
+      border: 1px solid #e0e8ff;
+      border-radius: 12px;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+      font-size: 0.92rem;
+    }
+
     .venta-card-custom .edit-btn:hover {
       transform: scale(1.1);
     }
 
     .venta-card-custom .venta-datos {
-      background: #f8faff;
-      border-radius: 12px;
-      padding: 16px;
-      margin: 16px 0;
-      display: block;
-      border: 1px solid #e0e8ff;
+      display: none; /* se reemplaza por details en mobile */
     }
 
     .venta-card-custom .venta-datos div {
@@ -731,15 +813,15 @@ if ($tipoCuentaActual !== '' && !in_array($tipoCuentaActual, $tiposCuenta, true)
       display: flex;
       justify-content: space-between;
       gap: 12px;
-      margin-top: 12px;
+      margin-top: 10px;
     }
 
     .venta-card-custom .venta-btns button {
       width: 50%;
       font-weight: 600;
       border-radius: 8px;
-      padding: 10px 0;
-      font-size: 0.95rem;
+      padding: 9px 0;
+      font-size: 0.9rem;
       transition: all 0.2s ease;
       border-width: 2px;
     }
@@ -755,20 +837,9 @@ if ($tipoCuentaActual !== '' && !in_array($tipoCuentaActual, $tiposCuenta, true)
       color: white;
     }
 
-    .venta-card-custom .text-start {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: #1a237e;
-      margin-bottom: 4px;
-      padding-left: 0;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
+    .venta-card-custom .text-start,
     .venta-card-custom .text-start::before {
-      content: '📱';
-      font-size: 1.1rem;
+      display: none;
     }
 
     @media (max-width: 400px) {
@@ -1159,7 +1230,14 @@ if ($tipoCuentaActual !== '' && !in_array($tipoCuentaActual, $tiposCuenta, true)
               ];
               $tipoNombreM = $tipoNombreMapM[$tipoKeyM];
 
-              echo "<div class='venta-card-custom mb-3'>
+              $tipoBadgeMapM = [
+                'gpt' => 'GPT',
+                'gemini' => 'GEM',
+                'perplexity' => 'PPLX'
+              ];
+              $tipoBadgeM = $tipoBadgeMapM[$tipoKeyM] ?? 'GPT';
+
+              echo "<div class='venta-card-custom'>
         <div class='edit-btn'>
             <button class='btn btn-warning btn-sm edit-venta'
                 data-id='{$fila['id']}'
@@ -1168,21 +1246,38 @@ if ($tipoCuentaActual !== '' && !in_array($tipoCuentaActual, $tiposCuenta, true)
                 data-fecha_fin='{$fechaFin->format('Y-m-d')}'
                 data-pago='{$fila['pago']}'
                 data-cuenta_id='{$fila['cuenta_id']}'
-                data-vendedor_id='{$_SESSION['user_id']}'>
+                data-vendedor_id='{$_SESSION['user_id']}'
+                title='Editar'>
                 <i class='bi bi-pencil'></i>
             </button>
         </div>
-        <div class='text-start fw-bold fs-5 mb-2' style='padding-left:8px;'>" . htmlspecialchars($fila['numero_celular']) . "</div>
-        <div class='venta-datos mx-auto mb-3' style='background:#fff; border-radius:4px; padding:10px 12px; display:inline-block;'>
-            <div><strong>TC:</strong> {$diasContratados}</div>
-            <div><i class='bi bi-cash-coin me-2'></i>$" . number_format($fila['pago'], 2) . "</div>
-            <div><i class='bi bi-envelope me-2'></i>" . htmlspecialchars($fila['cuenta_correo']) . "</div>
-            <div><i class='bi bi-calendar me-2'></i>{$diaInicio} {$mesInicio} {$anoInicio}</div>
-            <div><i class='bi bi-calendar-check me-2'></i>{$diaFin} {$mesFin} {$anoFin}</div>
+
+        <div class='venta-top'>
+          <div class='venta-title'>" . htmlspecialchars($fila['numero_celular']) . "</div>
+          <div class='venta-badges'>
+            <span class='badge {$claseBadge}'>R: {$diasMostrar}d</span>
+            <span class='badge bg-secondary'>T: {$diasContratados}d</span>
+            <span class='badge bg-dark'>$" . number_format($fila['pago'], 2) . "</span>
+            <span class='badge bg-info text-dark'>{$tipoBadgeM}</span>
+          </div>
         </div>
+
+        <div class='venta-sub'>
+          <div class='line'><i class='bi bi-envelope'></i><span class='truncate'>" . htmlspecialchars($fila['cuenta_correo']) . "</span></div>
+          <div class='line'><i class='bi bi-calendar-check'></i><span>Fin: {$diaFin} {$mesFin} {$anoFin}</span></div>
+        </div>
+
+        <details class='venta-more'>
+          <summary>Ver mas</summary>
+          <div class='venta-more-body'>
+            <div class='line'><i class='bi bi-calendar'></i><span>Inicio: {$diaInicio} {$mesInicio} {$anoInicio}</span></div>
+            <div class='line'><i class='bi bi-tag'></i><span>Tipo: " . htmlspecialchars($tipoNombreM) . "</span></div>
+          </div>
+        </details>
+
         <div class='venta-btns d-flex justify-content-between gap-2 px-2 pb-2'>
-            <button class='btn btn-outline-dark w-50 delete-venta' data-id='{$fila['id']}'>Eliminar</button>
-                <button class='btn btn-outline-dark w-50 copy-btn'
+            <button class='btn btn-outline-dark w-50 delete-venta' data-id='{$fila['id']}'><i class='bi bi-trash me-1'></i>Eliminar</button>
+            <button class='btn btn-outline-dark w-50 copy-btn'
                 data-correo='" . htmlspecialchars($fila['cuenta_correo'], ENT_QUOTES) . "'
                 data-contrasena='" . htmlspecialchars($fila['contrasena_gpt'], ENT_QUOTES) . "'
                 data-inicio='{$diaInicio} {$mesInicio} {$anoInicio}'
@@ -1191,7 +1286,7 @@ if ($tipoCuentaActual !== '' && !in_array($tipoCuentaActual, $tiposCuenta, true)
                 data-tipo_cuenta='" . htmlspecialchars($fila['tipo_cuenta'] ?? 'gpt', ENT_QUOTES) . "'
                 data-tipo_cuenta_key='{$tipoKeyM}'
                 data-tipo_cuenta_nombre='" . htmlspecialchars($tipoNombreM, ENT_QUOTES) . "'>
-                Copiar
+                <i class='bi bi-clipboard me-1'></i>Copiar
             </button>
         </div>
     </div>";

@@ -68,6 +68,11 @@ $resultado_vendedores = mysqli_query($conn, $sql_vendedores);
             padding: 0;
         }
 
+        /* Helpers */
+        .mobile-only {
+            display: none;
+        }
+
         .admin-badge {
             background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
             color: white;
@@ -116,9 +121,19 @@ $resultado_vendedores = mysqli_query($conn, $sql_vendedores);
             padding: 30px;
             min-height: 100vh;
             width: calc(100% - 260px);
-            background: white;
+            background: #f5f7fa;
             position: relative;
             z-index: 1;
+        }
+
+        /* Desktop content shell */
+        .content-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(16, 24, 40, 0.08);
         }
 
         /* Mobile styles */
@@ -178,6 +193,15 @@ $resultado_vendedores = mysqli_query($conn, $sql_vendedores);
                 display: block !important;
             }
 
+            .content-container {
+                max-width: none;
+                margin: 0;
+                background: transparent;
+                border-radius: 0;
+                padding: 0;
+                box-shadow: none;
+            }
+
             .sidebar-mobile-backdrop {
                 position: fixed;
                 top: 0;
@@ -199,6 +223,16 @@ $resultado_vendedores = mysqli_query($conn, $sql_vendedores);
             .sidebar {
                 z-index: 1000 !important;
                 pointer-events: auto !important;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .table-scroll-container {
+                max-height: 72vh;
+            }
+
+            .table-scroll-container table th {
+                white-space: nowrap;
             }
         }
 
@@ -359,19 +393,20 @@ $resultado_vendedores = mysqli_query($conn, $sql_vendedores);
         </div>
         <div class="sidebar-mobile-backdrop" id="sidebarMobileBackdrop"></div>
 
-        <div class="d-flex">
-            <?php include 'includes/sidebar.php'; ?>
+                <div class="d-flex">
+                    <?php include 'includes/sidebar.php'; ?>
             <main class="main-content p-4">
-                <!-- Header Admin -->
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div>
-                        <h2 class="mb-1">Panel de Administración</h2>
-                        <p class="text-muted">Vista completa del sistema</p>
+                <div class="content-container">
+                    <!-- Header Admin -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h2 class="mb-1">Panel de Administración</h2>
+                            <p class="text-muted">Vista completa del sistema</p>
+                        </div>
+                        <span class="admin-badge">
+                            <i class="bi bi-shield-check"></i> ADMINISTRADOR
+                        </span>
                     </div>
-                    <span class="admin-badge">
-                        <i class="bi bi-shield-check"></i> ADMINISTRADOR
-                    </span>
-                </div>
 
                 <!-- Métricas Generales -->
                 <div class="row g-3 mb-4">
@@ -495,59 +530,60 @@ $resultado_vendedores = mysqli_query($conn, $sql_vendedores);
                     </table>
                 </div>
 
-                <!-- Tabla Ventas -->
-                <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
-                    <h5><a href="modules/ventas/ventas.php" class="text-decoration-none"><i class="bi bi-cart-check"></i> Ventas activas</a></h5>
-                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#nuevaVentaModal">
-                        <i class="bi bi-cart-plus"></i> Nueva venta
-                    </button>
-                </div>
-                <div class="table-scroll-container">
-                    <table class="table table-hover align-middle sticky-header">
-                        <thead class="sticky-top bg-light">
-                            <tr>
-                                <th>N°</th>
-                                <th>CUENTA</th>
-                                <th>VENDEDOR</th>
-                                <th>NUM</th>
-                                <th>F INI</th>
-                                <th>F END</th>
-                                <th>DIAS</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            $sql = "SELECT v.id, c.correo, ven.usuario as vendedor, v.numero_celular, 
-                                   v.fecha_inicio, v.fecha_fin, v.dias 
-                                   FROM ventas v 
-                                   JOIN cuentas c ON v.cuenta_id = c.id 
-                                   JOIN vendedores ven ON v.vendedor_id = ven.id
-                                   WHERE v.fecha_fin >= CURDATE()
-                                   ORDER BY v.fecha_fin ASC";
-                            $resultado = mysqli_query($conn, $sql);
+                    <!-- Tabla Ventas -->
+                    <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
+                        <h5><a href="modules/ventas/ventas.php" class="text-decoration-none"><i class="bi bi-cart-check"></i> Ventas activas</a></h5>
+                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#nuevaVentaModal">
+                            <i class="bi bi-cart-plus"></i> Nueva venta
+                        </button>
+                    </div>
+                    <div class="table-scroll-container">
+                        <table class="table table-hover align-middle sticky-header">
+                            <thead class="sticky-top bg-light">
+                                <tr>
+                                    <th>N°</th>
+                                    <th>CUENTA</th>
+                                    <th>VENDEDOR</th>
+                                    <th>NUM</th>
+                                    <th>F INI</th>
+                                    <th>F END</th>
+                                    <th>DIAS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                $sql = "SELECT v.id, c.correo, ven.usuario as vendedor, v.numero_celular, 
+                                       v.fecha_inicio, v.fecha_fin, v.dias 
+                                       FROM ventas v 
+                                       JOIN cuentas c ON v.cuenta_id = c.id 
+                                       JOIN vendedores ven ON v.vendedor_id = ven.id
+                                       WHERE v.fecha_fin >= CURDATE()
+                                       ORDER BY v.fecha_fin ASC";
+                                $resultado = mysqli_query($conn, $sql);
 
-                            if (mysqli_num_rows($resultado) > 0) {
-                                while ($fila = mysqli_fetch_assoc($resultado)) {
-                                    echo "<tr>
-                                            <td>{$fila['id']}</td>
-                                            <td>" . htmlspecialchars($fila['correo']) . "</td>
-                                            <td><span class='badge bg-info'>" . htmlspecialchars($fila['vendedor']) . "</span></td>
-                                            <td>" . htmlspecialchars($fila['numero_celular']) . "</td>
-                                            <td>" . date('d/m/Y', strtotime($fila['fecha_inicio'])) . "</td>
-                                            <td>" . date('d/m/Y', strtotime($fila['fecha_fin'])) . "</td>
-                                            <td>{$fila['dias']}</td>
-                                          </tr>";
+                                if (mysqli_num_rows($resultado) > 0) {
+                                    while ($fila = mysqli_fetch_assoc($resultado)) {
+                                        echo "<tr>
+                                                <td>{$fila['id']}</td>
+                                                <td>" . htmlspecialchars($fila['correo']) . "</td>
+                                                <td><span class='badge bg-info'>" . htmlspecialchars($fila['vendedor']) . "</span></td>
+                                                <td>" . htmlspecialchars($fila['numero_celular']) . "</td>
+                                                <td>" . date('d/m/Y', strtotime($fila['fecha_inicio'])) . "</td>
+                                                <td>" . date('d/m/Y', strtotime($fila['fecha_fin'])) . "</td>
+                                                <td>{$fila['dias']}</td>
+                                              </tr>";
+                                    }
+                                } else {
+                                    echo "<tr><td colspan='7' class='text-center'>No hay ventas activas</td></tr>";
                                 }
-                            } else {
-                                echo "<tr><td colspan='7' class='text-center'>No hay ventas activas</td></tr>";
-                            }
-                            ?>
-                        </tbody>
-                    </table>
+                                ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </main>
-        </div>
-    </div>
+                </div>
+            </div>
 
     <!-- Modales -->
     <!-- Modal Nueva Cuenta -->

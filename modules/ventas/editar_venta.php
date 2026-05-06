@@ -100,6 +100,7 @@ if (mysqli_stmt_execute($stmt)) {
         v.*, 
         c.correo, 
         c.contrasena_gpt,
+        c.tipo_cuenta,
         DATEDIFF(v.fecha_fin, v.fecha_inicio) AS dias
     FROM ventas v
     INNER JOIN cuentas c ON v.cuenta_id = c.id
@@ -111,7 +112,7 @@ if (mysqli_stmt_execute($stmt)) {
     mysqli_stmt_bind_result($stmt_venta, 
         $venta_id, $num_cel, $vend_id, $fec_ini, $fec_fin, 
         $venta_pago, $cta_id, $dias, $created, $updated,
-        $correo, $contrasena, $dias_calc
+        $correo, $contrasena, $tipo_cuenta, $dias_calc
     );
     mysqli_stmt_fetch($stmt_venta);
     mysqli_stmt_close($stmt_venta);
@@ -128,26 +129,29 @@ if (mysqli_stmt_execute($stmt)) {
     $fecha_ini = "$dia_ini $mes_ini $ano_ini";
     $fecha_end = "$dia_fin $mes_fin $ano_fin";
 
-    // Construir mensaje para portapapeles
-    $mensaje = <<<EOD
-Datos actualizados para la cuenta de Chat GPT
+    // Determinar nombre dinamico de cuenta como en copy-btn
+    $tipo_raw = strtolower(trim($tipo_cuenta ?? 'gpt'));
+    if (strpos($tipo_raw, 'gemini') !== false) {
+        $nombreCuenta = 'Gemini Advanced';
+    } elseif (strpos($tipo_raw, 'perplex') !== false) {
+        $nombreCuenta = 'Perplexity Pro';
+    } else {
+        $nombreCuenta = 'Chat Gpt Plus';
+    }
 
-Cuenta Chat GPT Plus (tiempo en días: $dias_calc días)
-Correo: $correo
-Contraseña: $contrasena
-
-Fecha ini: $fecha_ini
-Fecha end: $fecha_end
-
-Cambio de datos para la cuenta de Chat Gpt Plus, ingresa y me confirma por favor
-
-Reglas para el uso de la cuenta:
-* No modificar ningún dato de la cuenta
-* Evitar salir de la cuenta
-* Preferentemente, usar la aplicación móvil en el celular y en computadora el navegador Google Chrome (NO usar pestaña de incógnito)
-
-Ingresa ahora por favor y te paso los códigos de activación
-EOD;
+    // Construir mensaje para portapapeles (mismo formato que ventas.php)
+    $mensaje = "Datos para ingresar a la cuenta de {$nombreCuenta}\n\n" .
+               "Cuenta {$nombreCuenta} ({$dias_calc} dias)\n" .
+               "Correo: {$correo}\n" .
+               "Contrasena: {$contrasena}\n\n" .
+               "Fecha ini: {$fecha_ini}\n" .
+               "Fecha end: {$fecha_end}\n\n" .
+               "Reglas para el uso de la cuenta:\n\n" .
+               "- No modificar ningun dato de la cuenta, en caso de modificar algun dato de la cuenta, retiro la cuenta del grupo de trabajo y te quitare el acceso, no cubrire la garantia y el tiempo de servicio.\n" .
+               "- Evita salirte de la cuenta.\n" .
+               "- Referentemente, usa la aplicacion movil en el celular y en computadora navegador Google Chrome NO PESTAnA INCoGNITO \n" .
+               "- Link para pc preferentemente la pagina oficial en tu navegador\n\n" .
+               "Ingresa ahora por favor y te paso los codigos de activacion";
 
     // Limpiar todos los niveles de buffer
     while (ob_get_level()) {
