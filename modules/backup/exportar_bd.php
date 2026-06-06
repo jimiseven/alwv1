@@ -5,6 +5,10 @@ require_once __DIR__ . '/../../config/config.php';
 requireLogin();
 requireAdmin();
 
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+set_time_limit(0);
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     exit('Método no permitido');
@@ -48,18 +52,15 @@ writeLine('SET FOREIGN_KEY_CHECKS = 0;');
 writeLine();
 
 $tables = [];
-$views = [];
 $result = mysqli_query($conn, 'SHOW FULL TABLES');
 
 if (!$result) {
-    writeLine('-- Error al obtener tablas.');
+    writeLine('-- Error al obtener tablas: ' . mysqli_error($conn));
     exit;
 }
 
 while ($row = mysqli_fetch_array($result, MYSQLI_NUM)) {
-    if (($row[1] ?? '') === 'VIEW') {
-        $views[] = $row[0];
-    } else {
+    if (isset($row[1]) && strtoupper($row[1]) === 'BASE TABLE') {
         $tables[] = $row[0];
     }
 }
@@ -79,9 +80,9 @@ foreach ($tables as $table) {
     }
     writeLine();
 
-    $dataResult = mysqli_query($conn, 'SELECT * FROM ' . $quotedTable, MYSQLI_USE_RESULT);
+    $dataResult = mysqli_query($conn, 'SELECT * FROM ' . $quotedTable);
     if (!$dataResult) {
-        writeLine('-- No se pudieron exportar datos de ' . $quotedTable);
+        writeLine('-- No se pudieron exportar datos de ' . $quotedTable . ': ' . mysqli_error($conn));
         writeLine();
         continue;
     }
@@ -110,42 +111,6 @@ foreach ($tables as $table) {
     if ($rowCount > 0) {
         writeLine();
     }
-}
-
-foreach ($views as $view) {
-    $quotedView = quoteIdentifier($view);
-
-    writeLine('-- --------------------------------------------------------');
-    writeLine('-- Estructura de vista para ' . $quotedView);
-    writeLine('-- --------------------------------------------------------');
-    writeLine();
-    writeLine('DROP VIEW IF EXISTS ' . $quotedView . ';');
-
-    $createResult = mysqli_query($conn, 'SHOW CREATE VIEW ' . $quotedView);
-    if ($createResult && ($createRow = mysqli_fetch_assoc($createResult))) {
-        writeLine($createRow['Create View'] . ';');
-    }
-    writeLine();
-}
-
-$triggerResult = mysqli_query($conn, 'SHOW TRIGGERS');
-if ($triggerResult && mysqli_num_rows($triggerResult) > 0) {
-    writeLine('DELIMITER ;;');
-    while ($trigger = mysqli_fetch_assoc($triggerResult)) {
-        $triggerName = $trigger['Trigger'] ?? '';
-        if ($triggerName === '') {
-            continue;
-        }
-
-        $createTriggerResult = mysqli_query($conn, 'SHOW CREATE TRIGGER ' . quoteIdentifier($triggerName));
-        if ($createTriggerResult && ($createTrigger = mysqli_fetch_assoc($createTriggerResult))) {
-            writeLine('DROP TRIGGER IF EXISTS ' . quoteIdentifier($triggerName) . ';;');
-            writeLine($createTrigger['SQL Original Statement'] . ';;');
-            writeLine();
-        }
-    }
-    writeLine('DELIMITER ;');
-    writeLine();
 }
 
 writeLine('SET FOREIGN_KEY_CHECKS = 1;');
