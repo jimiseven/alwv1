@@ -36,6 +36,13 @@
                     <i class="bi bi-people me-2"></i> Usuarios
                 </a>
             </li>
+            <li class="nav-item mb-2">
+                <form method="post" action="<?php echo BASE_URL; ?>modules/backup/exportar_bd.php" onsubmit="return confirm('¿Deseas descargar un backup completo de la base de datos?');">
+                    <button type="submit" class="nav-link text-white rounded-pill w-100 text-start border-0 bg-transparent backup-sidebar-btn">
+                        <i class="bi bi-database-down me-2"></i> Exportar BD
+                    </button>
+                </form>
+            </li>
             <?php endif; ?>
 
             <div class="mt-5 pt-3 border-top border-secondary">
@@ -65,5 +72,14 @@
     .sidebar {
         min-height: 100vh;
         box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .backup-sidebar-btn {
+        transition: all 0.3s;
+    }
+
+    .backup-sidebar-btn:hover {
+        background-color: rgba(13, 110, 253, 0.85) !important;
+        transform: translateX(5px);
     }
 </style>
