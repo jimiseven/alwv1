@@ -11,9 +11,9 @@ if ($_SERVER['HTTP_HOST'] == 'localhost' || $_SERVER['HTTP_HOST'] == '127.0.0.1'
 } else {
     // Configuración para cPanel
     define('DB_SERVER', '185.140.33.19');
-    define('DB_USERNAME', 'carlacom_test1');
+    define('DB_USERNAME', 'carlacom_rootes');
     define('DB_PASSWORD', '&J%[zy*=8tR3Bp1i');
-    define('DB_NAME', 'carlacom_rootes');
+    define('DB_NAME', 'carlacom_test1');
 }
 
 // Intentar conectar a la base de datos MySQL
