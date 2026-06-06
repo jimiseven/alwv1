@@ -199,12 +199,39 @@ requireAdmin(); // Solo administradores pueden gestionar cuentas
 
         .modal input,
         .modal select,
-        .modal textarea,
-        .modal button {
+        .modal textarea {
             pointer-events: auto !important;
             position: relative;
             z-index: 3;
             background: white !important;
+        }
+
+        .modal button {
+            pointer-events: auto !important;
+            position: relative;
+            z-index: 3;
+        }
+
+        .modal .btn-secondary {
+            color: #fff !important;
+            background-color: #6c757d !important;
+            border-color: #6c757d !important;
+        }
+
+        .modal .btn-primary {
+            color: #fff !important;
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+        }
+
+        .modal .btn-danger {
+            color: #fff !important;
+            background-color: #dc3545 !important;
+            border-color: #dc3545 !important;
+        }
+
+        .modal-footer {
+            gap: 0.5rem;
         }
 
         .modal .form-control,
@@ -218,6 +245,32 @@ requireAdmin(); // Solo administradores pueden gestionar cuentas
             background-color: white !important;
             border-color: #86b7fe !important;
             box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+        }
+
+        @media (max-width: 575.98px) {
+            .modal-dialog {
+                margin: 0.75rem;
+                max-width: calc(100% - 1.5rem);
+            }
+
+            .modal-content {
+                max-height: calc(100vh - 1.5rem);
+                overflow: hidden;
+            }
+
+            .modal-body {
+                overflow-y: auto;
+            }
+
+            .modal-footer {
+                align-items: stretch;
+                flex-direction: column-reverse;
+            }
+
+            .modal-footer .btn {
+                width: 100%;
+                margin: 0 !important;
+            }
         }
 
         /* Asegurar que el sidebar-backdrop no interfiera con modales */
@@ -415,7 +468,7 @@ requireAdmin(); // Solo administradores pueden gestionar cuentas
                                   </tr>";
                                 }
                             } else {
-                                echo "<tr><td colspan='12' class='text-center'>No hay cuentas registradas</td></tr>";
+                                echo "<tr><td colspan='14' class='text-center'>No hay cuentas registradas</td></tr>";
                             }
                             ?>
                         </tbody>
@@ -653,26 +706,32 @@ requireAdmin(); // Solo administradores pueden gestionar cuentas
                 });
         });
 
-        // Guardar nueva cuenta
-        document.getElementById('formNuevaCuenta').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            fetch('guardar_cuenta.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        showAlert('Cuenta creada correctamente', 'success');
-                        setTimeout(() => {
-                            bootstrap.Modal.getInstance(document.getElementById('nuevaCuentaModal')).hide();
-                            window.location.reload();
-                        }, 1000);
-                    } else {
-                        showAlert('Error: ' + (data.error || 'Error al crear cuenta'), 'danger');
-                    }
-                });
+        // Guardar nueva cuenta. El modal está más abajo en el HTML, por eso se inicializa al cargar el DOM.
+        document.addEventListener('DOMContentLoaded', function() {
+            const formNuevaCuenta = document.getElementById('formNuevaCuenta');
+
+            if (!formNuevaCuenta) return;
+
+            formNuevaCuenta.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                fetch('guardar_cuenta.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            showAlert('Cuenta creada correctamente', 'success');
+                            setTimeout(() => {
+                                bootstrap.Modal.getInstance(document.getElementById('nuevaCuentaModal')).hide();
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            showAlert('Error: ' + (data.error || 'Error al crear cuenta'), 'danger');
+                        }
+                    });
+            });
         });
     </script>
     <script>
@@ -694,6 +753,13 @@ requireAdmin(); // Solo administradores pueden gestionar cuentas
             document.getElementById('btnConfirmarEliminarCuenta').addEventListener('click', function() {
                 const id = this.dataset.id;
 
+                if (!id) {
+                    showAlert('No se encontró el ID de la cuenta', 'danger');
+                    return;
+                }
+
+                this.disabled = true;
+
                 fetch('eliminar_cuenta.php', {
                         method: 'POST',
                         headers: {
@@ -714,6 +780,7 @@ requireAdmin(); // Solo administradores pueden gestionar cuentas
                             if (cuentaAEliminar) {
                                 cuentaAEliminar.remove();
                                 updateTotalGasto(data.deleted_amount || 0);
+                                showEmptyTableMessageIfNeeded();
                             }
                         } else {
                             showAlert('Error al eliminar: ' + (data.error || 'Error desconocido'), 'danger');
@@ -722,6 +789,9 @@ requireAdmin(); // Solo administradores pueden gestionar cuentas
                     .catch(error => {
                         showAlert('Error en la conexión', 'danger');
                         console.error('Error:', error);
+                    })
+                    .finally(() => {
+                        this.disabled = false;
                     });
             });
 
@@ -743,12 +813,27 @@ requireAdmin(); // Solo administradores pueden gestionar cuentas
                 }, 3000);
             }
 
-            // Función para actualizar total (ajusta los selectores según tu estructura)
+            // Función para actualizar total
             function updateTotalGasto(amountToSubtract) {
-                const totalElement = document.querySelector('tfoot th:nth-child(4)');
+                const totalElement = document.querySelector('tfoot th:last-child');
                 if (totalElement) {
                     const currentTotal = parseFloat(totalElement.textContent.replace('$', '').replace(/,/g, ''));
-                    totalElement.textContent = '$' + (currentTotal - amountToSubtract).toFixed(2);
+                    const safeCurrentTotal = Number.isNaN(currentTotal) ? 0 : currentTotal;
+                    const amount = parseFloat(amountToSubtract || 0);
+                    const safeAmount = Number.isNaN(amount) ? 0 : amount;
+                    const newTotal = Math.max(0, safeCurrentTotal - safeAmount);
+                    totalElement.textContent = '$' + newTotal.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                }
+            }
+
+            function showEmptyTableMessageIfNeeded() {
+                const tbody = document.querySelector('.table-container tbody');
+
+                if (tbody && !tbody.querySelector('tr')) {
+                    tbody.innerHTML = "<tr><td colspan='14' class='text-center'>No hay cuentas registradas</td></tr>";
                 }
             }
         });
